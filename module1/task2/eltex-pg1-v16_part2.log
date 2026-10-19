@@ -1,0 +1,296 @@
+Script started on 2026-10-07 18:45:55+07:00 [COMMAND="/usr/bin/bash" TERM="screen.xterm-256color" TTY="/dev/pts/59" COLUMNS="80" LINES="27"]
+eltex-pg1-v16@eltex-2026-autumn:~$ ls
+ls           lsb_release  lsinitramfs  lslocks      lsmod        lspci
+lsattr       lscpu        lsipc        lslogins     lsns         lsusb
+lsblk        lsfd         lsirq        lsmem        lsof         
+eltex-pg1-v16@eltex-2026-autumn:~$ $HIST
+$HISTCMD       $HISTCONTROL   $HISTFILE      $HISTFILESIZE  $HISTSIZE
+eltex-pg1-v16@eltex-2026-autumn:~$ echo $HISTFILESIZE 
+2000
+eltex-pg1-v16@eltex-2026-autumn:~$ .
+./             .bash_history  .bashrc        .lesshst       .viminfo
+../            .bash_logout   .config/       .profile       
+
+eltex-pg1-v16@eltex-2026-autumn:~$ eltex-pg1-v16@eltex-2026-autumn:~$ $HIST
+$HISTCMD       $HISTCONTROL   $HISTFILE      $HISTFILESIZE  $HISTSIZE
+eltex-pg1-v16@eltex-2026-autumn:~$ export export HISTTIMEFORMAT='%F %T '
+eltex-pg1-v16@eltex-2026-autumn:~$ date
+Wed Oct  7 06:51:22 PM +07 2026
+eltex-pg1-v16@eltex-2026-autumn:~$ history | less
+=    1  2026-10-07 18:45:55sl
+    2  2026-10-07 18:45:55ls
+    3  2026-10-07 18:45:55id
+    4  2026-10-07 18:45:55pwd
+    5  2026-10-07 18:45:55ls /home
+    6  2026-10-07 18:45:55ls
+    7  2026-10-07 18:45:55screen
+    8  2026-10-07 18:45:55screen --help
+    9  2026-10-07 18:45:55screen -ls
+   10  2026-10-07 18:45:55screen -r 30886.pts-9.eltex-2026-autumn
+   11  2026-10-07 18:45:55screen screen -S top -d -m top
+   12  2026-10-07 18:45:55screen -ls
+   13  2026-10-07 18:45:55screen -r top
+   14  2026-10-07 18:45:55screen -wipe
+   15  2026-10-07 18:45:55screen -ls
+   16  2026-10-07 18:45:55whereis top
+   17  2026-10-07 18:45:55screen screen -S top -d -m /usr/bin/top
+   18  2026-10-07 18:45:55screen -ls
+   19  2026-10-07 18:45:55screen -wipe
+   20  2026-10-07 18:45:55ещз
+: : : : :    21  2026-10-07 18:45:55top
+:    22  2026-10-07 18:45:55screen screen -S top -d -m top
+:    23  2026-10-07 18:45:55screen -ls
+:    24  2026-10-07 18:45:55screen -wipe
+:    25  2026-10-07 18:45:55screen screen -S top -d -m 
+:    26  2026-10-07 18:45:55screen -wipe
+:    27  2026-10-07 18:45:55screen screen -S top -d -m bash
+:    28  2026-10-07 18:45:55screen -wipe
+:    29  2026-10-07 18:45:55screen -ls
+:    30  2026-10-07 18:45:55screen screen -S top -d -m top
+:    31  2026-10-07 18:45:55screen -wipe
+:    32  2026-10-07 18:45:55screen -S top -d -m top
+:    33  2026-10-07 18:45:55ls
+:    34  2026-10-07 18:45:55screen -ls
+:    35  2026-10-07 18:45:55screen -r 35335.top
+:    36  2026-10-07 18:45:55screen
+:    37  2026-10-07 18:45:55screen -ls
+:    38  2026-10-07 18:45:55screen -ls
+:    39  2026-10-07 18:45:55vim report_part1.txt
+:    40  2026-10-07 18:45:55watch /usr/bin/vmstat
+:    41  2026-10-07 18:45:55screen -ls
+:    42  2026-10-07 18:45:55screen --help
+:    43  2026-10-07 18:45:55screen -ls
+:    44  2026-10-07 18:45:55screen --help | grep '-w'
+   45  2026-10-07 18:45:55screen --help | grep 'w'
+   46  2026-10-07 18:45:55screen --help | less
+   47  2026-10-07 18:45:55screen -ls
+   48  2026-10-07 18:45:55screen -list
+   49  2026-10-07 18:46:34cat .bashrc
+   50  2026-10-07 18:47:16echo $HISTFILESIZE 
+   51  2026-10-07 18:47:33ls .
+   52  2026-10-07 18:50:22export $HISTTIMEFORMAT='%F %T'
+   53  2026-10-07 18:50:33export HISTTIMEFORMAT='%F %T'
+   54  2026-10-07 18:51:22date
+   55  2026-10-07 18:51:41tail .bash_history 
+   56  2026-10-07 18:51:53head .bash_history 
+   57  2026-10-07 18:51:58history | less
+eltex-pg1-v16@eltex-2026-autumn:~$ export PROMPT_COMMAND='history -a'
+eltex-pg1-v16@eltex-2026-autumn:~$ echo test
+test
+eltex-pg1-v16@eltex-2026-autumn:~$ cat .bash_history | less
+=sl
+ls
+id
+pwd
+ls /home
+ls
+screen
+screen --help
+screen -ls
+screen -r 30886.pts-9.eltex-2026-autumn
+screen screen -S top -d -m top
+screen -ls
+screen -r top
+screen -wipe
+screen -ls
+whereis top
+screen screen -S top -d -m /usr/bin/top
+screen -ls
+screen -wipe
+ещз
+: top
+: screen screen -S top -d -m top
+: screen -ls
+screen -wipe
+screen screen -S top -d -m 
+screen -wipe
+screen screen -S top -d -m bash
+screen -wipe
+screen -ls
+screen screen -S top -d -m top
+screen -wipe
+screen -S top -d -m top
+ls
+screen -ls
+screen -r 35335.top
+screen
+screen -ls
+screen -ls
+vim report_part1.txt
+watch /usr/bin/vmstat
+screen -ls
+screen --help
+: screen -ls
+screen --help | grep '-w'
+screen --help | grep 'w'
+screen --help | less
+screen -ls
+screen -list
+ls
+cat raw.log 
+cat raw.log | less
+#1791373594
+cat .bashrc
+#1791373636
+echo $HISTFILESIZE 
+#1791373653
+ls .
+#1791373822
+export $HISTTIMEFORMAT='%F %T'
+#1791373833
+export HISTTIMEFORMAT='%F %T'
+#1791373882
+: date
+#1791373901
+tail .bash_history 
+#1791373913
+head .bash_history 
+#1791373918
+history | less
+#1791373996
+export PROMPT_COMMAND='history -a'
+#1791374008
+echo test
+eltex-pg1-v16@eltex-2026-autumn:~$ DATE=$(date +%d/%m/%Y)
+eltex-pg1-v16@eltex-2026-autumn:~$ TIME=$(date +"%T")
+eltex-pg1-v16@eltex-2026-autumn:~$ DATE_TIME=$DATE' '$TIME
+eltex-pg1-v16@eltex-2026-autumn:~$ echo $DATE_TIME
+07/10/2026 18:57:02
+eltex-pg1-v16@eltex-2026-autumn:~$ find -L /bin /sbin -maxdepth 1 -type f -name '*[0-9]*' -printf '%f\n'
+ping4
+pod2html
+python3.11
+ssh-argv0
+c99-gcc
+x86_64-linux-gnu-gcc-ar-12
+base64
+gcov-dump-12
+x86_64-linux-gnu-gcc-ranlib-12
+enc2xs
+x86_64-linux-gnu-gcc
+gcov-tool-12
+x86_64-linux-gnu-gcov-12
+pod2usage
+x86_64-linux-gnu-lto-dump
+x86_64
+x86_64-linux-gnu-objdump
+addr2line
+sha224sum
+py3versions
+linux32
+x86_64-linux-gnu-objcopy
+bzip2
+pdb3
+gcc-12
+x86_64-linux-gnu-readelf
+x86_64-linux-gnu-gcov-dump
+x86_64-linux-gnu-ar
+grub-mkpasswd-pbkdf2
+x86_64-linux-gnu-gcov-tool
+traceroute6.db
+md5sum
+bzip2recover
+grub-menulst2cfg
+x86_64-linux-gnu-cpp-12
+x86_64-linux-gnu-size
+x86_64-linux-gnu-gprofng
+x86_64-linux-gnu-ld
+x86_64-linux-gnu-gprof
+h2xs
+x86_64-linux-gnu-gcc-ranlib
+x86_64-linux-gnu-ranlib
+x86_64-linux-gnu-ld.gold
+x86_64-linux-gnu-as
+x86_64-linux-gnu-gold
+pod2text
+pydoc3
+x86_64-linux-gnu-nm
+x86_64-linux-gnu-elfedit
+x86_64-linux-gnu-strip
+x86_64-linux-gnu-gcc-nm-12
+perl5.36.0
+x86_64-linux-gnu-ld.bfd
+pydoc3.11
+x86_64-linux-gnu-gcov-tool-12
+b2sum
+c89
+lto-dump-12
+x86_64-linux-gnu-cpp
+x86_64-linux-gnu-lto-dump-12
+pod2man
+sha1sum
+c89-gcc
+x86_64-linux-gnu-gcc-nm
+pl2pm
+ping6
+h2ph
+x86_64-linux-gnu-c++filt
+x86_64-linux-gnu-gcc-ar
+sha512sum
+python3
+x86_64-linux-gnu-gcc-12
+gcc-ranlib-12
+x86_64-linux-gnu-gp-display-src
+base32
+pygettext3
+x86_64-linux-gnu-gp-collect-app
+x86_64-linux-gnu-gcov
+cpan5.36-x86_64-linux-gnu
+md5sum.textutils
+x86_64-linux-gnu-gp-archive
+sha384sum
+py3clean
+x86_64-linux-gnu-gcov-dump-12
+pdb3.11
+perl5.36-x86_64-linux-gnu
+c99
+x86_64-linux-gnu-strings
+linux64
+x86_64-linux-gnu-gp-display-html
+pygettext3.11
+systemd-id128
+x86_64-linux-gnu-dwp
+gcov-12
+i386
+bunzip2
+cpp-12
+x86_64-linux-gnu-gp-display-text
+x86_64-linux-gnu-addr2line
+py3compile
+grub-syslinux2cfg
+traceroute6
+diff3
+gcc-nm-12
+gcc-ar-12
+sha256sum
+dumpe2fs
+e2fsck
+mkfs.ext3
+e2freefrag
+e2undo
+e2scrub_all
+tune2fs
+e2image
+e2label
+e4defrag
+e2mmpstatus
+mke2fs
+mkfs.ext4
+mkfs.ext2
+e4crypt
+killall5
+fsck.ext3
+fsck.ext2
+e2scrub
+resize2fs
+fsck.ext4
+update-grub2
+eltex-pg1-v16@eltex-2026-autumn:~$ PS1='\u@\h-$(date +%H:%M:~$'
+eltex-pg1-v16@eltex-2026-autumn-19:05:~$ bash
+eltex-pg1-v16@eltex-2026-autumn:~$ 
+exit
+eltex-pg1-v16@eltex-2026-autumn-19:06:~$ export PS1 bash
+eltex-pg1-v16@eltex-2026-autumn-19:07:~$ 
+exit
+
+Script done on 2026-10-07 19:07:16+07:00 [COMMAND_EXIT_CODE="0"]
