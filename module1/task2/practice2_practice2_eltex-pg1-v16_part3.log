@@ -1,0 +1,176 @@
+eltex-pg1-v16@debian:~$ git config --global user.name ouselk
+eltex-pg1-v16@debian:~$ git config --global user.email "yagol41@yandex.ru"
+eltex-pg1-v16@debian:~$ git config --global init.defaultBranch main
+eltex-pg1-v16@debian:~$ sudo apt install git gh -y
+git is already the newest version (1:2.47.3-0+deb13u1).
+gh is already the newest version (2.46.0-3).
+Summary:
+  Upgrading: 0, Installing: 0, Removing: 0, Not Upgrading: 64
+eltex-pg1-v16@debian:~$ ssh-keygen -t ed25519 -f ~/.ssh/eltex-pg1-v16
+Generating public/private ed25519 key pair.
+Created directory '/home/eltex-pg1-v16/.ssh'.
+Enter passphrase for "/home/eltex-pg1-v16/.ssh/eltex-pg1-v16" (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/eltex-pg1-v16/.ssh/eltex-pg1-v16
+Your public key has been saved in /home/eltex-pg1-v16/.ssh/eltex-pg1-v16.pub
+eltex-pg1-v16@debian:~$ gh auth login
+? What account do you want to log into? GitHub.com
+? What is your preferred protocol for Git operations on this host? SSH
+? Upload your SSH public key to your GitHub account? /home/eltex-pg1-v16/.ssh/el? Title for your SSH key:  eltex 
+? How would you like to authenticate GitHub CLI? Paste an authentication token
+Tip: you can generate a Personal Access Token here https://github.com/settings/tokens
+The minimum required scopes are 'repo', 'read:org', 'admin:public_key'.
+? Paste your authentication token: ****************************************
+- gh config set -h github.com git_protocol ssh
+✓ Configured git protocol
+! Authentication credentials saved in plain text
+✓ Uploaded the SSH key to your GitHub account: /home/eltex-pg1-v16/.ssh/eltex-pg1-v16.pub
+✓ Logged in as ouselk
+eltex-pg1-v16@debian:~$ gh auth setup-git --hostname github.com
+eltex-pg1-v16@debian:~$ gh auth status
+github.com
+  ✓ Logged in to github.com account ouselk (/home/eltex-pg1-v16/.config/gh/hosts.yml)
+  - Active account: true
+  - Git operations protocol: ssh
+  - Token: ghp_************************************
+  - Token scopes: 'admin:org', 'admin:public_key', 'repo'
+eltex-pg1-v16@debian:~$ mkdir eltexmodule1 && cd eltexmodule1
+eltex-pg1-v16@debian:~/eltexmodule1$ echo "Модуль 1 курса системное программирование в Linux" > README.md
+eltex-pg1-v16@debian:~/eltexmodule1$ git init
+Initialized empty Git repository in /home/eltex-pg1-v16/eltexmodule1/.git/
+eltex-pg1-v16@debian:~/eltexmodule1$ git add README.md 
+eltex-pg1-v16@debian:~/eltexmodule1$ git commit -m "first commit"
+[main (root-commit) 464e7d0] first commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+eltex-pg1-v16@debian:~/eltexmodule1$ git branch -M main
+eltex-pg1-v16@debian:~/eltexmodule1$ git remote add origin https://github.com/ouselk/eltexmodule1
+eltex-pg1-v16@debian:~/eltexmodule1$ git status
+On branch main
+nothing to commit, working tree clean
+eltex-pg1-v16@debian:~/eltexmodule1$ git push -u origin main
+Enumerating objects: 3, done.
+Counting objects: 100% (3/3), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 287 bytes | 287.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/ouselk/eltexmodule1
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+eltex-pg1-v16@debian:~/eltexmodule1$ mkdir -p module1/task1
+eltex-pg1-v16@debian:~/eltexmodule1$ mkdir -p module1/task2
+eltex-pg1-v16@debian:~/eltexmodule1$ mkdir -p module1/task3
+eltex-pg1-v16@debian:~/eltexmodule1$ scp -P 44556 eltex-pg1-v16@217.71.138.1:/home/eltex-pg1-v16/eltex-pg1-v16_part1.pdf module1/task1/
+eltex-pg1-v16@217.71.138.1's password: 
+eltex-pg1-v16_part1.pdf                       100%  385KB 111.0KB/s   00:03    
+eltex-pg1-v16@debian:~/eltexmodule1$ scp -P 44556 eltex-pg1-v16@217.71.138.1:/home/eltex-pg1-v16/eltex-pg1-v16_part2.log module1/task1/
+eltex-pg1-v16@217.71.138.1's password: 
+eltex-pg1-v16_part2.log                       100% 7362     4.3KB/s   00:01    
+eltex-pg1-v16@debian:~/eltexmodule1$ scp -P 44556 eltex-pg1-v16@217.71.138.1:/home/eltex-pg1-v16/report_part1.txt module1/task1
+eltex-pg1-v16@217.71.138.1's password: 
+report_part1.txt                              100%  130     0.1KB/s   00:01    
+eltex-pg1-v16@debian:~/eltexmodule1$ scp -P 44556 eltex-pg1-v16@217.71.138.1:/home/eltex-pg1-v16/eltex-pg1-v16_part3.log module1/task1
+eltex-pg1-v16@217.71.138.1's password: 
+eltex-pg1-v16_part3.log                       100% 2043    11.7KB/s   00:00    
+eltex-pg1-v16@debian:~/eltexmodule1$ scp -P 44556 eltex-pg1-v16@217.71.138.1:/home/eltex-pg1-v16/eltex-pg1-v16_part3_gt20M.log module1/task1
+eltex-pg1-v16@217.71.138.1's password: 
+eltex-pg1-v16_part3_gt20M.log                                                                                               100% 3509     6.6KB/s   00:00    
+eltex-pg1-v16@debian:~/eltexmodule1$ git add .
+eltex-pg1-v16@debian:~/eltexmodule1$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   module1/task1/eltex-pg1-v16_part1.pdf
+	new file:   module1/task1/report_part1.txt
+	new file:   module1/task2/eltex-pg1-v16_part2.log
+	new file:   module1/task3/eltex-pg1-v16_part3.log
+	new file:   module1/task3/eltex-pg1-v16_part3_gt20M.log
+eltex-pg1-v16@debian:~/eltexmodule1$ git commit -m "Загрузка первого задания первого модуля"
+[main 85badb4] Загрузка первого задания первого модуля
+ 5 files changed, 366 insertions(+)
+ create mode 100644 module1/task1/eltex-pg1-v16_part1.pdf
+ create mode 100644 module1/task1/report_part1.txt
+ create mode 100644 module1/task2/eltex-pg1-v16_part2.log
+ create mode 100644 module1/task3/eltex-pg1-v16_part3.log
+ create mode 100644 module1/task3/eltex-pg1-v16_part3_gt20M.log
+eltex-pg1-v16@debian:~/eltexmodule1$ git push
+Enumerating objects: 12, done.
+Counting objects: 100% (12/12), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (11/11), done.
+Writing objects: 100% (11/11), 351.65 KiB | 11.72 MiB/s, done.
+Total 11 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/ouselk/eltexmodule1
+   464e7d0..85badb4  main -> main
+eltex-pg1-v16@debian:~/eltexmodule1_clone$ git clone https://github.com/ouselk/eltexmodule1.git
+Cloning into 'eltexmodule1'...
+remote: Enumerating objects: 14, done.
+remote: Counting objects: 100% (14/14), done.
+remote: Compressing objects: 100% (13/13), done.
+remote: Total 14 (delta 0), reused 14 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (14/14), 351.90 KiB | 301.00 KiB/s, done.
+eltex-pg1-v16@debian:~/eltexmodule1_clone$ cd ~/eltexmodule1
+eltex-pg1-v16@debian:~/eltexmodule1$ touch super_useful_change
+eltex-pg1-v16@debian:~/eltexmodule1$ git add super_useful_change 
+eltex-pg1-v16@debian:~/eltexmodule1$ git commit -m "пункт 11"
+[main 24970f2] пункт 11
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 super_useful_change
+eltex-pg1-v16@debian:~/eltexmodule1$ git push
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 324 bytes | 324.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/ouselk/eltexmodule1
+   85badb4..24970f2  main -> main
+eltex-pg1-v16@debian:~/eltexmodule1$ cd ~/eltexmodule1_clone/
+eltex-pg1-v16@debian:~/eltexmodule1_clone$ git fetch
+remote: Enumerating objects: 4, done.
+remote: Counting objects: 100% (4/4), done.
+remote: Compressing objects: 100% (2/2), done.
+remote: Total 3 (delta 0), reused 3 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (3/3), 301 bytes | 301.00 KiB/s, done.
+From https://github.com/ouselk/eltexmodule1
+   c03e928..19adc47  main       -> origin/main
+eltex-pg1-v16@debian:~/eltexmodule1_clone$ git log origin/main
+commit 19adc47db7b4bfefe67cdc360b9c3eb9bcd0b470 (origin/main, origin/HEAD)
+Author: ouselk <yagol41@yandex.ru>
+Date:   Mon Oct 19 08:14:28 2026 -0400
+
+    super_useful_commit
+
+commit c03e92856b0a14147cc407c93505d3fa912a1681 (HEAD -> main)
+Author: ouselk <yagol41@yandex.ru>
+Date:   Mon Oct 19 08:11:08 2026 -0400
+
+    Загрузка первого задания первого модуля
+
+commit 464e7d0f42d42971abe6ba6d65b49de55bad3b6f
+Author: ouselk <yagol41@yandex.ru>
+Date:   Mon Oct 19 07:46:16 2026 -0400
+
+    first commit
+eltex-pg1-v16@debian:~/eltexmodule1_clone$ git diff main origin/main
+diff --git a/super_useful_change b/super_useful_change
+new file mode 100644
+index 0000000..e69de29
+eltex-pg1-v16@debian:~/eltexmodule1_clone$ git merge
+Updating c03e928..19adc47
+Fast-forward
+ super_useful_change | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 super_useful_change
+eltex-pg1-v16@debian:~/eltexmodule1$ cd ~/eltexmodule1
+eltex-pg1-v16@debian:~/eltexmodule1$ scp -P 44556 eltex-pg1-v16@217.71.138.1:/home/eltex-pg1-v16/practice2_eltex-pg1-v16_part1.log module1/task2
+eltex-pg1-v16@217.71.138.1's password: 
+practice2_eltex-pg1-v16_part1.log                                                                                           100%   11KB  48.6KB/s   00:00    
+eltex-pg1-v16@debian:~/eltexmodule1$ scp -P 44556 eltex-pg1-v16@217.71.138.1:/home/eltex-pg1-v16/practice2_eltex-pg1-v16_part2.log module1/task2
+eltex-pg1-v16@217.71.138.1's password: 
+practice2_eltex-pg1-v16_part2.log                                                                                           100%  157KB 191.4KB/s   00:00    
+eltex-pg1-v16@debian:~/eltexmodule1$ ln -P $MYLOG module1/task2/
+
