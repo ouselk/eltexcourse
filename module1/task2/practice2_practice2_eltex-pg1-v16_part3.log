@@ -173,4 +173,37 @@ eltex-pg1-v16@debian:~/eltexmodule1$ scp -P 44556 eltex-pg1-v16@217.71.138.1:/ho
 eltex-pg1-v16@217.71.138.1's password: 
 practice2_eltex-pg1-v16_part2.log                                                                                           100%  157KB 191.4KB/s   00:00    
 eltex-pg1-v16@debian:~/eltexmodule1$ ln -P $MYLOG module1/task2/
+eltex-pg1-v16@debian:~/eltexmodule1$ git add .
+eltex-pg1-v16@debian:~/eltexmodule1$ git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	renamed:    module1/task2/eltex-pg1-v16_part2.log -> module1/task1/eltex-pg1-v16_part2.log
+	renamed:    module1/task3/eltex-pg1-v16_part3.log -> module1/task1/eltex-pg1-v16_part3.log
+	renamed:    module1/task3/eltex-pg1-v16_part3_gt20M.log -> module1/task1/eltex-pg1-v16_part3_gt20M.log
+	new file:   module1/task2/practice2_eltex-pg1-v16_part1.log
+	new file:   module1/task2/practice2_eltex-pg1-v16_part2.log
+	new file:   module1/task2/practice2_practice2_eltex-pg1-v16_part3.log
+
+eltex-pg1-v16@debian:~/eltexmodule1$ git commit -m "Загрузка второго задания"
+[main 89f7ca8] Загрузка второго задания
+ 6 files changed, 2328 insertions(+)
+ rename module1/{task2 => task1}/eltex-pg1-v16_part2.log (100%)
+ rename module1/{task3 => task1}/eltex-pg1-v16_part3.log (100%)
+ rename module1/{task3 => task1}/eltex-pg1-v16_part3_gt20M.log (100%)
+ create mode 100644 module1/task2/practice2_eltex-pg1-v16_part1.log
+ create mode 100644 module1/task2/practice2_eltex-pg1-v16_part2.log
+ create mode 100644 module1/task2/practice2_practice2_eltex-pg1-v16_part3.log
+eltex-pg1-v16@debian:~/eltexmodule1$ git push
+Enumerating objects: 14, done.
+Counting objects: 100% (14/14), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (10/10), done.
+Writing objects: 100% (10/10), 33.22 KiB | 5.54 MiB/s, done.
+Total 10 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To https://github.com/ouselk/eltexmodule1
+   19adc47..89f7ca8  main -> main
+eltex-pg1-v16@debian:~/eltexmodule1$ 
 
