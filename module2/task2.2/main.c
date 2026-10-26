@@ -9,7 +9,7 @@ double sum(double n1, double n2)
 
 double multiple(double n1, double n2)
 {
-    return n1+n2;
+    return n1*n2;
 }
 
 double devide(double n1, double n2)
