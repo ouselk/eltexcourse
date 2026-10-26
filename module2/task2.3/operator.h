@@ -6,9 +6,9 @@ typedef struct {
     char symbol;
 } Operator;
 
-int getPriority(char sym_of_operator)
+int getPriorityBySym(char sym_of_operator)
 {
-    switch (operator) {
+    switch (sym_of_operator) {
     case '+':
     case '-':
         return 1;
@@ -23,6 +23,6 @@ int getPriority(char sym_of_operator)
 }
 int getPriority(Operator operator)
 {
-    return getPriority(operator.symbol);
+    return getPriorityBySym(operator.symbol);
 }
 #endif

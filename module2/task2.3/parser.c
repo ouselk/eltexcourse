@@ -7,12 +7,8 @@
 #include "operator.h"
 #include "parser.h"
 
-#define MAX_EXPR_SIZE 1000
-#define MAX_NUMBER_SIZE 100
-#define SUPPORTED_OPERATORS "*-/+"
-
 int precedence(char operator) { 
-    return getPriority(operator)
+    return getPriorityBySym(operator);
 }
 
 int isOperator(char ch) { //проверка является ли символ оператором 

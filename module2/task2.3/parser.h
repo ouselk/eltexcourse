@@ -1,6 +1,9 @@
 #ifndef PARSER_H
 #define PARSER_H
+#define MAX_EXPR_SIZE 1000
+#define MAX_NUMBER_SIZE 100
 
+#include "stack.h"
 typedef enum 
 {
     EMPTY_TOKEN = -1,
@@ -14,4 +17,5 @@ typedef struct {
     char data;
 } Token;
 
+Token* infixToPostfix(char* infix, stackNode** head);
 #endif

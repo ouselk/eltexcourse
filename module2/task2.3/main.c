@@ -1,3 +1,6 @@
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 #include "parser.h"
 #include "calculator.h"
 #include "stack.h"
@@ -31,12 +34,12 @@ int main()
     Token* postfix = infixToPostfix(infix, &head);
 
 
-    Operator* operators = [
+    Operator operators[] = {
         {mySumFunc,  '+'},
         {myDiffFunc, '-'},
         {myMultFunc, '*'},
         {myDivFunc,  '/'}
-    ]
+    };
 
     calculate(postfix, operators, 4);
     return 0;

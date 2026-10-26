@@ -1,36 +1,37 @@
 #include <math.h>
+#include <stddef.h>
 #include "stack.h"
 #include "operator.h"
 #include "parser.h"
 
-double calculate(double left, double right, char operator_symbol,
+double doOperation(double left, double right, char operator_symbol,
                 const Operator* operators, int operators_count)
 {
-    for (int i = 0; i<operators_count, i++)
+    for (int i = 0; i<operators_count; i++)
     {
         if (operator_symbol==operators[i].symbol)
         {
-            return operators.func(left,right);
+            return operators[i].func(left,right);
         }
     }
-    return nan("")
+    return nan("");
 }
-double calculate(const Token* expr, const Operator* operators, int operator_count)
+double calculate(const Token* expr, const Operator* operators, int operators_count)
 {
     int i=0;
-    stackNode calc = NULL;
-    while (expr[i].type!=EMPTY)
+    stackNode *calc = NULL;
+    while (expr[i].type!=EMPTY_TOKEN)
     {
-        if (expr[i].type==NUMBER)
+        if (expr[i].type==NUMBER_TOKEN)
         {
-            stackPush(calc, expr[i].value);
+            stackPush(&calc, expr[i].value);
         }
-        else if (expr[i].type==OPERATOR)
+        else if (expr[i].type==OPERATOR_TOKEN)
         {
-            double right = stackPop(calc);
-            double left  = stackPop(calc);
-            stackPush(calculate(left,right,expr[i].data, operators, operators_count))
+            double right = stackPop(&calc);
+            double left  = stackPop(&calc);
+            stackPush(&calc, doOperation(left,right,expr[i].data, operators, operators_count));
         }
     }
-    return stackPop();
+    return stackPop(&calc);
 }
