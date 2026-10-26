@@ -4,6 +4,7 @@
 #define MAX_NUMBER_SIZE 100
 
 #include "stack.h"
+#include "operator.h"
 typedef enum 
 {
     EMPTY_TOKEN = -1,
@@ -17,5 +18,10 @@ typedef struct {
     char data;
 } Token;
 
+int precedence(char operator);
+int isOperator(char ch);
+static void addNum(Token *arr, int i, double value);
+static void addOp(Token *arr, int i, char operator);
 Token* infixToPostfix(char* infix, stackNode** head);
+
 #endif
