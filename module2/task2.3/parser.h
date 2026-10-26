@@ -3,9 +3,9 @@
 
 typedef enum 
 {
-    EMPTY = -1,
-    OPERATOR,
-    NUMBER
+    EMPTY_TOKEN = -1,
+    OPERATOR_TOKEN,
+    NUMBER_TOKEN
 } TOKEN_TYPE;
 
 typedef struct {
@@ -13,11 +13,5 @@ typedef struct {
     double value;
     char data;
 } Token;
-
-typedef struct {
-    double (*func) (double, double);
-    char symbol;
-    int priority;
-} Fuction
 
 #endif

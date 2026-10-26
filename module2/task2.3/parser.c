@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <locale.h>
 #include "stack.h"
+#include "operator.h"
 #include "parser.h"
 
 #define MAX_EXPR_SIZE 1000
@@ -11,18 +12,7 @@
 #define SUPPORTED_OPERATORS "*-/+"
 
 int precedence(char operator) { 
-    switch (operator) {
-    case '+':
-    case '-':
-        return 1;
-    case '*':
-    case '/':
-        return 2;
-    case '^':
-        return 3;
-    default:
-        return -1;
-    }
+    return getPriority(operator)
 }
 
 int isOperator(char ch) { //проверка является ли символ оператором 
@@ -31,14 +21,14 @@ int isOperator(char ch) { //проверка является ли символ 
 
 static void addNum(Token *arr, int i, double value)
 {
-    arr[i].type = NUMBER;
+    arr[i].type = NUMBER_TOKEN;
     arr[i].value=value;
     arr[i].data='\0';
 }
 
 static void addOp(Token *arr, int i, char operator)
 {
-    arr[i].type = OPERATOR;
+    arr[i].type = OPERATOR_TOKEN;
     arr[i].value=0;
     arr[i].data=operator;
 }
@@ -89,64 +79,6 @@ Token* infixToPostfix(char* infix, stackNode** head) {
         }
         addOp(postfix, j++, stackPop(head));
     }
-    postfix[j].type = EMPTY;
+    postfix[j].type = EMPTY_TOKEN;
     return postfix;
-}
-
-double calculate(Token* expr)
-{
-    int i=0;
-    stackNode calc = NULL;
-    while (expr[i].type!=EMPTY)
-    {
-        if (expr[i].type==NUMBER)
-        {
-            stackPush(calc, expr[i].value);
-        }
-        else if (expr[i].type==OPERATOR)
-        {
-            double right = stackPop(calc);
-            double left  = stackPop(calc);
-            stackPush()
-        }
-    }
-}
-int main() {
-    stackNode* head = NULL;
-    char infix[MAX_EXPR_SIZE] = {'\0'};
-    printf("Enter String:");
-    fgets(infix,MAX_EXPR_SIZE,stdin);
-    for (int i = 0; i < MAX_EXPR_SIZE; i++)
-    {
-        if (infix[i] == '\0' && infix[i-1] == '\n')
-            infix[i-1] = '\0';
-    }
-    fflush(stdin);
-    Token* postfix = infixToPostfix(infix, &head);
-    if (postfix==NULL)
-    {
-        printf("String is empty!\n"); 
-    }
-  //  else if (strcmp(infixToPostfix(infix, &head), "error")==0)
-   // {
-    //    printf("Error!\n");
-  //  }
-    else 
-    {
-        printf("Infix   : %s\n", infix);
-        printf("Postfix : ");
-        for (int i =0; i<MAX_EXPR_SIZE && postfix[i].type!=EMPTY; i++)
-        {
-            if (postfix[i].type==NUMBER)
-            {
-                printf("%g ", postfix[i].value);
-            }
-            else if (postfix[i].type==OPERATOR)
-            {
-                printf("%c ", postfix[i].data);
-            }
-        }   
-    }
-    free(postfix);
-    return 0;
 }
