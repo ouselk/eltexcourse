@@ -12,7 +12,7 @@ int precedence(char operator) {
 }
 
 int isOperator(char ch) { //проверка является ли символ оператором 
-    return (ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '^');
+    return getPriorityBySym(ch)!=-1;
 }
 
 static void addNum(Token *arr, int i, double value)

@@ -18,9 +18,8 @@ double doOperation(double left, double right, char operator_symbol,
 }
 double calculate(const Token* expr, const Operator* operators, int operators_count)
 {
-    int i=0;
     stackNode *calc = NULL;
-    while (expr[i].type!=EMPTY_TOKEN)
+    for (int i =0; expr[i].type!=EMPTY_TOKEN; i++)
     {
         if (expr[i].type==NUMBER_TOKEN)
         {
