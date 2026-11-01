@@ -1,5 +1,5 @@
 calculator: main.c
-	gcc -std=c11 -o calculator main.c 
+	gcc -std=c11 main.c 
 
 clean:
-	rm -f calculator
+	rm -f a.out

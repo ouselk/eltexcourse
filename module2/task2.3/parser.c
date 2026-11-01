@@ -38,7 +38,7 @@ Token* infixToPostfix(char* infix, stackNode** head) {
     Token* postfix = (Token*)malloc(sizeof(Token) * (len + 2)); //выделяем память под постфиксную строку
 
     for (i = 0, j = 0; i < len; i++) {
-        if (isalnum(infix[i])) { //Если символ - буква или цифра, то добавляем его в постфиксную строку postfix.
+        if (isalnum(infix[i])) { //Если символ - цифра, то добавляем его в постфиксную строку postfix.
             char buf[MAX_NUMBER_SIZE+1];
             int k = 0;
             while (isalnum(infix[i]))
