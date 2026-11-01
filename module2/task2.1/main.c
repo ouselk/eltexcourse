@@ -3,14 +3,6 @@
 #include <ctype.h>
 #include "phonebook.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-/* ---------- ввод ---------- */
-
-/* Читает строку из stdin, обрезая пробелы по краям.
-   0 - ок, 1 - строка не поместилась в буфер, -1 - конец ввода/ошибка. */
 static int readLine(const char *prompt, char *buf, size_t size)
 {
     printf("%s", prompt);
@@ -24,7 +16,7 @@ static int readLine(const char *prompt, char *buf, size_t size)
         buf[--len] = '\0';
     } else if (len == size - 1) {
         int ch = getchar();
-        if (ch != '\n' && ch != EOF) {          /* в строке есть ещё символы */
+        if (ch != '\n' && ch != EOF) {
             while (ch != '\n' && ch != EOF)
                 ch = getchar();
             buf[0] = '\0';
@@ -32,11 +24,9 @@ static int readLine(const char *prompt, char *buf, size_t size)
         }
     }
 
-    /* обрезаем пробелы справа */
     while (len > 0 && isspace((unsigned char)buf[len - 1]))
         buf[--len] = '\0';
 
-    /* обрезаем пробелы слева: сдвигаем строку к началу буфера */
     size_t start = 0;
     while (buf[start] != '\0' && isspace((unsigned char)buf[start]))
         start++;
@@ -52,30 +42,15 @@ static int readLine(const char *prompt, char *buf, size_t size)
     return 0;
 }
 
-/* ---------- вспомогательные ---------- */
-
-/* Индекс контакта с такими фамилией и именем или -1. */
-static int findContact(const ContactBook *cb, const char *family, const char *name)
-{
-    for (int i = 0; i < cb->size; i++) {
-        if (!isContactEmpty(&cb->contacts[i])
-            && strcmp(cb->contacts[i].family, family) == 0
-            && strcmp(cb->contacts[i].name, name) == 0)
-            return i;
-    }
-    return -1;
-}
-
-/* ---------- вывод ---------- */
-
 void printContacts(ContactBook *cb)
 {
-    int n = 0;
-    for (int i = 0; i < cb->size; i++) {
-        const Contact *c = &cb->contacts[i];
-        if (isContactEmpty(c))
+    int total = getContactCount(cb);
+    for (int i = 0; i < total; i++) {
+        Contact tmp;
+        if (getContact(cb, i, &tmp) != 0)
             continue;
-        printf("Контакт №%d:\n", ++n);
+        const Contact *c = &tmp;
+        printf("Контакт №%d:\n", i + 1);
         if (c->family[0] != '\0')       printf("  фамилия: %s\n", c->family);
         if (c->name[0] != '\0')         printf("  имя: %s\n", c->name);
         if (c->surname[0] != '\0')      printf("  отчество: %s\n", c->surname);
@@ -84,18 +59,10 @@ void printContacts(ContactBook *cb)
         if (c->phone_number[0] != '\0') printf("  телефон: %s\n", c->phone_number);
         if (c->emails[0] != '\0')       printf("  email: %s\n", c->emails);
     }
-    if (n == 0)
+    if (total == 0)
         printf("Контактная книга пуста.\n");
 }
 
-/* ---------- меню ---------- */
-
-/* Запрашивает данные контакта. Значения, уже лежащие в contact, считаются
-   текущими: Enter оставляет текущее значение поля, "-" очищает необязательное
-   поле. Для нового контакта вызывающий передаёт обнулённую структуру,
-   для редактирования - копию старого контакта.
-   Фамилия и имя (первые два поля) не могут остаться пустыми.
-   0 - успех, -1 - ошибка. */
 int createContactMenu(Contact *contact)
 {
     if (contact == NULL)
@@ -115,8 +82,8 @@ int createContactMenu(Contact *contact)
         {"Email: ",        contact->emails,       sizeof(contact->emails)},
     };
     const int count = (int)(sizeof(fields) / sizeof(fields[0]));
-    const int required = 2;                 /* фамилия и имя */
-    char input[EMAIL_LEN];                  /* не меньше самого большого поля */
+    const int required = 2;
+    char input[EMAIL_LEN];
 
     if (contact->family[0] == '\0')
         printf("Обязательные поля: фамилия и имя. Остальные можно пропустить (Enter).\n");
@@ -136,7 +103,7 @@ int createContactMenu(Contact *contact)
                     printf("Это поле обязательно для заполнения. Повторите ввод.\n");
                     continue;
                 }
-                break;                      /* оставляем текущее значение */
+                break;
             }
             if (strcmp(input, "-") == 0) {
                 if (i < required) {
@@ -166,19 +133,12 @@ void addContactMenu(ContactBook *cb)
         return;
     }
 
-    int idx = -1;
-    for (int i = 0; i < cb->size; i++) {
-        if (isContactEmpty(&cb->contacts[i])) {
-            idx = i;
-            break;
-        }
-    }
-    if (idx == -1) {
+    if (isContactBookFull(cb)) {
         printf("Контактная книга переполнена\n");
         return;
     }
 
-    if (addContact(cb, &c, idx) != 0) {
+    if (addContact(cb, &c, getContactCount(cb)) != 0) {
         printf("Ошибка: не удалось добавить контакт.\n");
         return;
     }
@@ -271,8 +231,11 @@ void updateContactMenu(ContactBook *cb)
            "  Enter - оставить прежнее значение поля,\n"
            "  '-'   - удалить значение поля (кроме фамилии и имени).\n");
 
-    /* Пропущенные поля остаются такими же, как в старом контакте. */
-    Contact nc = cb->contacts[idx];
+    Contact nc;
+    if (getContact(cb, idx, &nc) != 0) {
+        printf("Ошибка: не удалось прочитать контакт.\n");
+        return;
+    }
     if (createContactMenu(&nc) != 0) {
         printf("Ошибка: не удалось создать контакт.\n");
         return;
@@ -291,8 +254,6 @@ void updateContactMenu(ContactBook *cb)
     printf("Контакт обновлён.\n");
 }
 
-/* ---------- main ---------- */
-
 static void printMenu(void)
 {
     printf("\n=== Телефонная книга ===\n"
@@ -305,19 +266,14 @@ static void printMenu(void)
 
 int main(void)
 {
-#ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-#endif
-
-    static ContactBook cb;                  /* static: обнулена целиком */
-    cb.size = CONTACT_BOOK_SIZE;
+    static ContactBook cb;
+    initContactBook(&cb);
 
     for (;;) {
         char line[16];
         printMenu();
         if (readLine("Выбор: ", line, sizeof(line)) < 0)
-            break;                          /* конец ввода */
+            break;
 
         if (strcmp(line, "1") == 0)      printContacts(&cb);
         else if (strcmp(line, "2") == 0) addContactMenu(&cb);
