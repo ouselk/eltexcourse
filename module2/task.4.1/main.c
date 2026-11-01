@@ -138,7 +138,7 @@ void addContactMenu(ContactBook *cb)
         return;
     }
 
-    if (addContact(cb, &c, getContactCount(cb)) != 0) {
+    if (addContact(cb, &c) != 0) {
         printf("Ошибка: не удалось добавить контакт.\n");
         return;
     }
@@ -266,7 +266,7 @@ static void printMenu(void)
 
 int main(void)
 {
-    static ContactBook cb;
+    ContactBook cb;
     initContactBook(&cb);
 
     for (;;) {
