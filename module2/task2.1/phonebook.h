@@ -22,23 +22,16 @@ typedef struct {
 typedef struct {
     Contact contacts[CONTACT_BOOK_SIZE];
     int size;
-    int count;
 } ContactBook;
 
 void initContactBook(ContactBook *cb);
-
 int getContactCount(const ContactBook *cb);
-
 int isContactBookFull(const ContactBook *cb);
-
 int getContact(const ContactBook *cb, int idx, Contact *out);
-
 int findContact(const ContactBook *cb, const char *family, const char *name);
-
-int addContact(ContactBook *cb, const Contact *contact, int idx);
-
+int addElemInArray(ContactBook *cb, const Contact *contact, int idx);
+int addContact(ContactBook *cb, const Contact *contact);
 int delContact(ContactBook *cb, int idx);
-
 int updateContact(ContactBook *cb, int idx, const Contact *new_contact);
 
 #endif
