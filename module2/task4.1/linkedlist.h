@@ -14,11 +14,10 @@ typedef struct {
     ListNode *tail;
 } LinkedList;
 
-/* Как искать место для вставки / удаляемый элемент. */
+/* Как искать место для вставки / удаляемый элемент (в обоих режимах один проход с остановкой по порядку). */
 typedef enum {
-    LIST_SEARCH_BASELINE,  /* исходный код: проверка дубликата и поиск полным проходом с головы */
-    LIST_SEARCH_HEAD,      /* один проход с головы с остановкой по порядку (без весов) */
-    LIST_SEARCH_WEIGHTED   /* один проход, начало выбирается по таблице весов первых букв */
+    LIST_SEARCH_HEAD,      /* исходный вариант: всегда идём с головы */
+    LIST_SEARCH_WEIGHTED   /* оптимизация: сторону обхода выбираем по таблице весов первых букв */
 } ListSearchMode;
 
 #ifdef LIST_COUNT_STEPS
@@ -30,9 +29,7 @@ int listCompare(const Contact *a, const Contact *b);
 void listInit(LinkedList *list);
 void listClear(LinkedList *list);
 
-int listInsert(LinkedList *list, const Contact *contact);
 int listIndexOf(const LinkedList *list, const char *family, const char *name);
-int listRemove(LinkedList *list, const char *family, const char *name);
 const Contact *listGet(const LinkedList *list, int idx);
 int listSet(LinkedList *list, int idx, const Contact *contact);
 void printList(const LinkedList *list);

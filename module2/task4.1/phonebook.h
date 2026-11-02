@@ -20,7 +20,7 @@ const Contact *getContactAt(const ContactBook *cb, int idx);
 int addContact(ContactBook *cb, const Contact *contact);
 int delContact(ContactBook *cb, const char *family, const char *name);
 
-/* То же с явным выбором стратегии (LIST_SEARCH_BASELINE - исходная реализация). */
+/* То же с явным выбором стратегии (LIST_SEARCH_HEAD - обход всегда с головы). */
 int addContactEx(ContactBook *cb, const Contact *contact, ListSearchMode mode);
 int delContactEx(ContactBook *cb, const char *family, const char *name, ListSearchMode mode);
 

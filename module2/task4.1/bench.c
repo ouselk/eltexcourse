@@ -59,11 +59,7 @@ static unsigned long long checkBook(const ContactBook *cb)
 
 static const char *modeName(ListSearchMode m)
 {
-    switch (m) {
-    case LIST_SEARCH_BASELINE: return "исходный (без оптимизации)";
-    case LIST_SEARCH_HEAD:     return "только с головы + ранний выход";
-    default:                   return "по весам букв (оптимизация)";
-    }
+    return m == LIST_SEARCH_HEAD ? "исходный (с головы)" : "оптимизированный (по весам)";
 }
 
 typedef struct {
@@ -118,10 +114,12 @@ static int runOnce(ContactBook *cb, const Contact *items, int n, ListSearchMode 
 int main(int argc, char **argv)
 {
     if (argc < 4) {
-        fprintf(stderr, "usage: %s base.csv test_real.csv test_uniform.csv [reps]\n", argv[0]);
+        fprintf(stderr, "usage: %s base.csv reps workload1.csv [workload2.csv ...]\n", argv[0]);
         return 1;
     }
-    int reps = (argc > 4) ? atoi(argv[4]) : 3;
+    int reps = atoi(argv[2]);
+    if (reps < 1 || reps > 16) reps = 3;
+    int nwl = argc - 3;
 
     int nbase;
     Contact *base = loadPairs(argv[1], &nbase);
@@ -139,8 +137,8 @@ int main(int argc, char **argv)
     if (!base_hash) { printf("исходный список не отсортирован\n"); return 1; }
 
     /* быстрые проверки граничных случаев для всех режимов */
-    ListSearchMode modes[3] = { LIST_SEARCH_BASELINE, LIST_SEARCH_HEAD, LIST_SEARCH_WEIGHTED };
-    for (int m = 0; m < 3; m++) {
+    ListSearchMode modes[2] = { LIST_SEARCH_HEAD, LIST_SEARCH_WEIGHTED };
+    for (int m = 0; m < 2; m++) {
         Contact dup = base[nbase / 2];
         Contact first, last;
         memset(&first, 0, sizeof(first)); memset(&last, 0, sizeof(last));
@@ -158,18 +156,16 @@ int main(int argc, char **argv)
         if (!ok) return 1;
     }
 
-    const char *wl_names[2] = { "реальное распределение первых букв", "равномерно по буквам алфавита" };
-
-    for (int w = 0; w < 2; w++) {
+    for (int w = 0; w < nwl; w++) {
         int n;
-        Contact *items = loadPairs(argv[2 + w], &n);
-        printf("\n=== Набор %d: %s, %d записей (вставка, затем удаление тех же записей) ===\n", w + 1, wl_names[w], n);
+        Contact *items = loadPairs(argv[3 + w], &n);
+        printf("\n=== Набор %d: %s, %d записей (вставка, затем удаление тех же записей) ===\n", w + 1, argv[3 + w], n);
         printf("%-34s %12s %12s %14s %14s\n", "режим", "вставка, мс", "удаление, мс", "шагов/вставка", "шагов/удал.");
 
         unsigned long long ref_hash = 0;
-        double med_ins[3], med_del[3];
+        double med_ins[2], med_del[2], st_ins[2], st_del[2];
 
-        for (int m = 0; m < 3; m++) {
+        for (int m = 0; m < 2; m++) {
             double ti[16], td[16];
             Result r = {0};
             for (int k = 0; k < reps; k++) {
@@ -183,13 +179,16 @@ int main(int argc, char **argv)
             qsort(td, reps, sizeof(double), cmpDouble);
             med_ins[m] = ti[reps / 2];
             med_del[m] = td[reps / 2];
+            st_ins[m] = r.ins_steps;
+            st_del[m] = r.del_steps;
             printf("%-34s %12.1f %12.1f %14.0f %14.0f\n", modeName(modes[m]),
                    med_ins[m], med_del[m], r.ins_steps, r.del_steps);
         }
-        printf("Ускорение оптимизации относительно исходного: вставка x%.2f, удаление x%.2f\n",
-               med_ins[0] / med_ins[2], med_del[0] / med_del[2]);
-        printf("Ускорение относительно варианта «только с головы»: вставка x%.2f, удаление x%.2f\n",
-               med_ins[1] / med_ins[2], med_del[1] / med_del[2]);
+        printf("Ускорение по времени: вставка x%.2f, удаление x%.2f\n",
+               med_ins[0] / med_ins[1], med_del[0] / med_del[1]);
+        if (st_ins[1] > 0)
+            printf("Узлов пройдено меньше: вставка в %.2f раза, удаление в %.2f раза\n",
+                   st_ins[0] / st_ins[1], st_del[0] / st_del[1]);
         free(items);
     }
 

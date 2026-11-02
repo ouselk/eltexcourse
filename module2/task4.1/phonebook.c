@@ -39,17 +39,9 @@ int addContactEx(ContactBook *cb, const Contact *contact, ListSearchMode mode)
     if (cb->size >= CONTACT_BOOK_SIZE)
         return -1;
 
-    if (mode == LIST_SEARCH_BASELINE) {
-        /* исходная реализация: полный проход для проверки дубликата + проход для вставки */
-        if (findContact(cb, contact->family, contact->name) != -1)
-            return -1;
-        if (listInsert(&cb->list, contact) != 0)
-            return -1;
-    } else {
-        /* дубликат обнаруживается в том же проходе, что ищет место вставки */
-        if (listInsertEx(&cb->list, contact, mode) != 0)
-            return -1;
-    }
+    /* дубликат обнаруживается в том же проходе, что ищет место вставки */
+    if (listInsertEx(&cb->list, contact, mode) != 0)
+        return -1;
 
     cb->size++;
     return 0;

@@ -92,7 +92,7 @@ static void linkAfter(LinkedList *list, ListNode *prev, ListNode *n)
         list->head = n;
 }
 
-/* ---------- исходная (неоптимизированная) версия ---------- */
+/* ---------- доступ по индексу и listSet (идут с головы) ---------- */
 
 static void attachSorted(LinkedList *list, ListNode *n)
 {
@@ -121,22 +121,6 @@ static void attachSorted(LinkedList *list, ListNode *n)
     }
 }
 
-int listInsert(LinkedList *list, const Contact *contact)
-{
-    if (list == NULL || contact == NULL)
-        return -1;
-
-    ListNode *n = malloc(sizeof(*n));
-    if (n == NULL)
-        return -1;
-
-    n->contact = *contact;
-    n->next = NULL;
-    n->prev = NULL;
-    attachSorted(list, n);
-    return 0;
-}
-
 int listIndexOf(const LinkedList *list, const char *family, const char *name)
 {
     if (list == NULL || family == NULL || name == NULL)
@@ -150,18 +134,6 @@ int listIndexOf(const LinkedList *list, const char *family, const char *name)
             return i;
     }
     return -1;
-}
-
-int listRemove(LinkedList *list, const char *family, const char *name)
-{
-    int idx = listIndexOf(list, family, name);
-    if (idx == -1)
-        return -1;
-
-    ListNode *n = nodeAt(list, idx);
-    detachNode(list, n);
-    free(n);
-    return 0;
 }
 
 const Contact *listGet(const LinkedList *list, int idx)
@@ -232,9 +204,6 @@ int listInsertEx(LinkedList *list, const Contact *contact, ListSearchMode mode)
     if (list == NULL || contact == NULL)
         return -1;
 
-    if (mode == LIST_SEARCH_BASELINE)
-        return listInsert(list, contact);   /* проверка дубликата делается снаружи, как раньше */
-
     int fromTail = (mode == LIST_SEARCH_WEIGHTED) && preferTail(contact->family);
     ListNode *prev;  /* после какого узла вставляем (NULL - в начало) */
 
@@ -270,9 +239,6 @@ int listRemoveEx(LinkedList *list, const char *family, const char *name, ListSea
 {
     if (list == NULL || family == NULL || name == NULL)
         return -1;
-
-    if (mode == LIST_SEARCH_BASELINE)
-        return listRemove(list, family, name);
 
     int fromTail = (mode == LIST_SEARCH_WEIGHTED) && preferTail(family);
     ListNode *cur;
