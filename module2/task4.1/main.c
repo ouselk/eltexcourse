@@ -83,13 +83,9 @@ void delContactMenu(ContactBook *cb)
         return;
     }
 
-    if (findContact(cb, family, name) == -1) {
-        printf("Такого контакта не существует\n");
-        return;
-    }
-
+    /* delContact сам ищет контакт одним оптимизированным проходом */
     if (delContact(cb, family, name) != 0) {
-        printf("Ошибка: не удалось удалить контакт.\n");
+        printf("Такого контакта не существует\n");
         return;
     }
     printf("Контакт удалён.\n");
