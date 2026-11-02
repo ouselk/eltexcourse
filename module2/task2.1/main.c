@@ -1,6 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "phonebook.h"
 
 static int readLine(const char *prompt, char *buf, size_t size)
@@ -13,54 +13,24 @@ static int readLine(const char *prompt, char *buf, size_t size)
 
     size_t len = strlen(buf);
     if (len > 0 && buf[len - 1] == '\n') {
-        buf[--len] = '\0';
-    } else if (len == size - 1) {
-        int ch = getchar();
-        if (ch != '\n' && ch != EOF) {
-            while (ch != '\n' && ch != EOF)
-                ch = getchar();
-            buf[0] = '\0';
-            return 1;
-        }
+        buf[len - 1] = '\0';
+    } else {
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF)
+            ;
     }
-
-    while (len > 0 && isspace((unsigned char)buf[len - 1]))
-        buf[--len] = '\0';
-
-    size_t start = 0;
-    while (buf[start] != '\0' && isspace((unsigned char)buf[start]))
-        start++;
-    if (start > 0) {
-        size_t i = 0;
-        while (buf[start + i] != '\0') {
-            buf[i] = buf[start + i];
-            i++;
-        }
-        buf[i] = '\0';
-    }
-
     return 0;
 }
 
-void printContacts(ContactBook *cb)
+static int readRequired(const char *prompt, char *buf, size_t size)
 {
-    int total = getContactCount(cb);
-    for (int i = 0; i < total; i++) {
-        Contact tmp;
-        if (getContact(cb, i, &tmp) != 0)
-            continue;
-        const Contact *c = &tmp;
-        printf("Контакт №%d:\n", i + 1);
-        if (c->family[0] != '\0')       printf("  фамилия: %s\n", c->family);
-        if (c->name[0] != '\0')         printf("  имя: %s\n", c->name);
-        if (c->surname[0] != '\0')      printf("  отчество: %s\n", c->surname);
-        if (c->workplace[0] != '\0')    printf("  место работы: %s\n", c->workplace);
-        if (c->position[0] != '\0')     printf("  должность: %s\n", c->position);
-        if (c->phone_number[0] != '\0') printf("  телефон: %s\n", c->phone_number);
-        if (c->emails[0] != '\0')       printf("  email: %s\n", c->emails);
+    for (;;) {
+        if (readLine(prompt, buf, size) != 0)
+            return -1;
+        if (buf[0] != '\0')
+            return 0;
+        printf("Это поле обязательно для заполнения.\n");
     }
-    if (total == 0)
-        printf("Контактная книга пуста.\n");
 }
 
 int createContactMenu(Contact *contact)
@@ -68,221 +38,148 @@ int createContactMenu(Contact *contact)
     if (contact == NULL)
         return -1;
 
-    struct {
-        const char *prompt;
-        char *buf;
-        size_t size;
-    } fields[] = {
-        {"Фамилия: ",      contact->family,       sizeof(contact->family)},
-        {"Имя: ",          contact->name,         sizeof(contact->name)},
-        {"Отчество: ",     contact->surname,      sizeof(contact->surname)},
-        {"Место работы: ", contact->workplace,    sizeof(contact->workplace)},
-        {"Должность: ",    contact->position,     sizeof(contact->position)},
-        {"Телефон: ",      contact->phone_number, sizeof(contact->phone_number)},
-        {"Email: ",        contact->emails,       sizeof(contact->emails)},
-    };
-    const int count = (int)(sizeof(fields) / sizeof(fields[0]));
-    const int required = 2;
-    char input[EMAIL_LEN];
+    memset(contact, 0, sizeof(*contact));
 
-    if (contact->family[0] == '\0')
-        printf("Обязательные поля: фамилия и имя. Остальные можно пропустить (Enter).\n");
+    if (readRequired("Фамилия (обязательно): ", contact->family, sizeof(contact->family)) != 0)
+        return -1;
+    if (readRequired("Имя (обязательно): ", contact->name, sizeof(contact->name)) != 0)
+        return -1;
+    if (readLine("Отчество: ", contact->surname, sizeof(contact->surname)) != 0)
+        return -1;
+    if (readLine("Место работы: ", contact->workplace, sizeof(contact->workplace)) != 0)
+        return -1;
+    if (readLine("Должность: ", contact->position, sizeof(contact->position)) != 0)
+        return -1;
+    if (readLine("Телефон(ы) (через запятую): ", contact->phone_number, sizeof(contact->phone_number)) != 0)
+        return -1;
+    if (readLine("Email(ы) (через запятую): ", contact->emails, sizeof(contact->emails)) != 0)
+        return -1;
 
-    for (int i = 0; i < count; i++) {
-        for (;;) {
-            int rc = readLine(fields[i].prompt, input, fields[i].size);
-            if (rc < 0)
-                return -1;
-            if (rc == 1) {
-                printf("Слишком длинное значение (максимум %zu байт). Повторите ввод.\n",
-                       fields[i].size - 1);
-                continue;
-            }
-            if (input[0] == '\0') {
-                if (i < required && fields[i].buf[0] == '\0') {
-                    printf("Это поле обязательно для заполнения. Повторите ввод.\n");
-                    continue;
-                }
-                break;
-            }
-            if (strcmp(input, "-") == 0) {
-                if (i < required) {
-                    printf("Фамилию и имя очистить нельзя. Повторите ввод.\n");
-                    continue;
-                }
-                fields[i].buf[0] = '\0';
-                break;
-            }
-            snprintf(fields[i].buf, fields[i].size, "%s", input);
-            break;
-        }
-    }
     return 0;
 }
 
 void addContactMenu(ContactBook *cb)
 {
-    Contact c = {0};
+    Contact c;
+
     if (createContactMenu(&c) != 0) {
         printf("Ошибка: не удалось создать контакт.\n");
         return;
     }
 
-    if (findContact(cb, c.family, c.name) != -1) {
-        printf("Ошибка: контакт с такими фамилией и именем уже существует.\n");
-        return;
-    }
-
-    if (isContactBookFull(cb)) {
-        printf("Контактная книга переполнена\n");
-        return;
-    }
-
-    if (addContact(cb, &c) != 0) {
-        printf("Ошибка: не удалось добавить контакт.\n");
-        return;
-    }
-    printf("Контакт добавлен.\n");
+    if (addContact(cb, &c) == 0)
+        printf("Контакт успешно добавлен.\n");
+    else
+        printf("Ошибка: контакт не добавлен (книга заполнена или такой контакт уже существует).\n");
 }
 
 void delContactMenu(ContactBook *cb)
 {
-    Contact key = {0};
-    int rc;
+    char family[NAME_LEN], name[NAME_LEN];
 
-    do {
-        rc = readLine("Фамилия: ", key.family, sizeof(key.family));
-        if (rc == 1)
-            printf("Слишком длинное значение (максимум %zu байт). Повторите ввод.\n",
-                   sizeof(key.family) - 1);
-        else if (rc == 0 && key.family[0] == '\0')
-            printf("Это поле обязательно для заполнения. Повторите ввод.\n");
-    } while (rc == 1 || (rc == 0 && key.family[0] == '\0'));
-    if (rc < 0) {
+    if (readLine("Фамилия удаляемого контакта: ", family, sizeof(family)) != 0 ||
+        readLine("Имя удаляемого контакта: ", name, sizeof(name)) != 0) {
         printf("Ошибка ввода.\n");
         return;
     }
 
-    do {
-        rc = readLine("Имя: ", key.name, sizeof(key.name));
-        if (rc == 1)
-            printf("Слишком длинное значение (максимум %zu байт). Повторите ввод.\n",
-                   sizeof(key.name) - 1);
-        else if (rc == 0 && key.name[0] == '\0')
-            printf("Это поле обязательно для заполнения. Повторите ввод.\n");
-    } while (rc == 1 || (rc == 0 && key.name[0] == '\0'));
-    if (rc < 0) {
-        printf("Ошибка ввода.\n");
-        return;
-    }
-
-    int idx = findContact(cb, key.family, key.name);
-    if (idx == -1) {
+    if (findContact(cb, family, name) == -1) {
         printf("Такого контакта не существует\n");
         return;
     }
-    if (delContact(cb, idx) != 0) {
+
+    if (delContact(cb, family, name) != 0) {
         printf("Ошибка: не удалось удалить контакт.\n");
         return;
     }
     printf("Контакт удалён.\n");
 }
 
+static void mergeField(char *dst, size_t size, const char *old_val, const char *new_val)
+{
+    if (strcmp(new_val, "-") == 0)
+        dst[0] = '\0';
+    else if (new_val[0] == '\0')
+        snprintf(dst, size, "%s", old_val);
+    else
+        snprintf(dst, size, "%s", new_val);
+}
+
 void updateContactMenu(ContactBook *cb)
 {
-    Contact key = {0};
-    int rc;
+    char family[NAME_LEN], name[NAME_LEN];
 
-    printf("Введите фамилию и имя контакта, который нужно изменить.\n");
-
-    do {
-        rc = readLine("Фамилия: ", key.family, sizeof(key.family));
-        if (rc == 1)
-            printf("Слишком длинное значение (максимум %zu байт). Повторите ввод.\n",
-                   sizeof(key.family) - 1);
-        else if (rc == 0 && key.family[0] == '\0')
-            printf("Это поле обязательно для заполнения. Повторите ввод.\n");
-    } while (rc == 1 || (rc == 0 && key.family[0] == '\0'));
-    if (rc < 0) {
+    if (readLine("Фамилия редактируемого контакта: ", family, sizeof(family)) != 0 ||
+        readLine("Имя редактируемого контакта: ", name, sizeof(name)) != 0) {
         printf("Ошибка ввода.\n");
         return;
     }
 
-    do {
-        rc = readLine("Имя: ", key.name, sizeof(key.name));
-        if (rc == 1)
-            printf("Слишком длинное значение (максимум %zu байт). Повторите ввод.\n",
-                   sizeof(key.name) - 1);
-        else if (rc == 0 && key.name[0] == '\0')
-            printf("Это поле обязательно для заполнения. Повторите ввод.\n");
-    } while (rc == 1 || (rc == 0 && key.name[0] == '\0'));
-    if (rc < 0) {
-        printf("Ошибка ввода.\n");
-        return;
-    }
-
-    int idx = findContact(cb, key.family, key.name);
+    int idx = findContact(cb, family, name);
     if (idx == -1) {
         printf("Ошибка: такого контакта не существует.\n");
         return;
     }
 
-    printf("Введите новые данные контакта.\n"
-           "  Enter - оставить прежнее значение поля,\n"
-           "  '-'   - удалить значение поля (кроме фамилии и имени).\n");
+    printf("\nВведите новые данные контакта.\n"
+           "  - Фамилия и имя обязательны (введите их заново, можно прежние).\n"
+           "  - Enter: оставить прежнее значение поля.\n"
+           "  - '-' : удалить значение поля.\n\n");
 
-    Contact nc;
-    if (getContact(cb, idx, &nc) != 0) {
-        printf("Ошибка: не удалось прочитать контакт.\n");
-        return;
-    }
-    if (createContactMenu(&nc) != 0) {
+    Contact entered;
+    if (createContactMenu(&entered) != 0) {
         printf("Ошибка: не удалось создать контакт.\n");
         return;
     }
 
-    int other = findContact(cb, nc.family, nc.name);
-    if (other != -1 && other != idx) {
-        printf("Ошибка: контакт с такими фамилией и именем уже существует.\n");
-        return;
-    }
+    const Contact *old = &cb->contacts[idx];
+    Contact merged;
+    memset(&merged, 0, sizeof(merged));
 
-    if (updateContact(cb, idx, &nc) != 0) {
-        printf("Ошибка: не удалось обновить контакт.\n");
-        return;
-    }
-    printf("Контакт обновлён.\n");
+    snprintf(merged.family, sizeof(merged.family), "%s", entered.family);
+    snprintf(merged.name, sizeof(merged.name), "%s", entered.name);
+
+    mergeField(merged.surname, sizeof(merged.surname), old->surname, entered.surname);
+    mergeField(merged.workplace, sizeof(merged.workplace), old->workplace, entered.workplace);
+    mergeField(merged.position, sizeof(merged.position), old->position, entered.position);
+    mergeField(merged.phone_number, sizeof(merged.phone_number), old->phone_number, entered.phone_number);
+    mergeField(merged.emails, sizeof(merged.emails), old->emails, entered.emails);
+
+    if (updateContact(cb, family, name, &merged) == 0)
+        printf("Контакт успешно обновлён.\n");
+    else
+        printf("Ошибка: не удалось обновить контакт (возможно, контакт с такими фамилией и именем уже существует).\n");
 }
 
-static void printMenu(void)
+static void printMenu()
 {
     printf("\n=== Телефонная книга ===\n"
-           "1 - Показать контакты\n"
-           "2 - Добавить контакт\n"
-           "3 - Редактировать контакт\n"
-           "4 - Удалить контакт\n"
-           "0 - Выход\n");
+           "1. Добавить контакт\n"
+           "2. Редактировать контакт\n"
+           "3. Удалить контакт\n"
+           "4. Показать все контакты\n"
+           "0. Выход\n");
 }
 
-int main(void)
+int main()
 {
-    ContactBook cb;
-    initContactBook(&cb);
+    static ContactBook book;
+    initContactBook(&book);
 
+    char buf[16];
     for (;;) {
-        char line[16];
         printMenu();
-        if (readLine("Выбор: ", line, sizeof(line)) < 0)
+        if (readLine("Выбор: ", buf, sizeof(buf)) != 0)
             break;
 
-        if (strcmp(line, "1") == 0)      printContacts(&cb);
-        else if (strcmp(line, "2") == 0) addContactMenu(&cb);
-        else if (strcmp(line, "3") == 0) updateContactMenu(&cb);
-        else if (strcmp(line, "4") == 0) delContactMenu(&cb);
-        else if (strcmp(line, "0") == 0) break;
-        else printf("Неизвестная команда.\n");
+        switch (atoi(buf)) {
+        case 1: addContactMenu(&book);    break;
+        case 2: updateContactMenu(&book); break;
+        case 3: delContactMenu(&book);    break;
+        case 4: printContacts(&book);     break;
+        case 0: return 0;
+        default: printf("Неверный пункт меню.\n");
+        }
     }
-
-    printf("\nДо свидания!\n");
     return 0;
 }
