@@ -132,7 +132,7 @@ void updateContactMenu(ContactBook *cb)
         return;
     }
 
-    const Contact *old = &cb->contacts[idx];
+    const Contact *old = getContactAt(cb, idx);
     Contact merged;
     memset(&merged, 0, sizeof(merged));
 

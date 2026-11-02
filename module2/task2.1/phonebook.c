@@ -108,3 +108,11 @@ void printContacts(const ContactBook *cb)
     if (n == 0)
         printf("Список контактов пуст.\n");
 }
+
+const Contact *getContactAt(const ContactBook *cb, int idx)
+{
+    if (cb == NULL)
+        return NULL;
+    return &(cb->contacts[idx]);
+}
+

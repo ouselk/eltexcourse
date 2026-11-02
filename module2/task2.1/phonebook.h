@@ -32,5 +32,6 @@ int updateContact(ContactBook *cb, const char *family, const char *name,
                   const Contact *new_contact);
 
 void printContacts(const ContactBook *cb);
+const Contact *getContactAt(const ContactBook *cb, int idx);
 
 #endif
