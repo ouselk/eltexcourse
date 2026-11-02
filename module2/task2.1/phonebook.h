@@ -23,15 +23,16 @@ typedef struct {
     int size;
 } ContactBook;
 
-
 void initContactBook(ContactBook *cb);
-int findContact(const ContactBook *cb, const char *family, const char *name);
+
+int findContact(const ContactBook *cb, const char *family, const char *name,
+                Contact *out);
+
 int addContact(ContactBook *cb, const Contact *contact);
 int delContact(ContactBook *cb, const char *family, const char *name);
 int updateContact(ContactBook *cb, const char *family, const char *name,
                   const Contact *new_contact);
 
 void printContacts(const ContactBook *cb);
-const Contact *getContactAt(const ContactBook *cb, int idx);
 
 #endif

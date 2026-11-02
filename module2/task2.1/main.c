@@ -83,7 +83,7 @@ void delContactMenu(ContactBook *cb)
         return;
     }
 
-    if (findContact(cb, family, name) == -1) {
+    if (findContact(cb, family, name, NULL) == -1) {
         printf("Такого контакта не существует\n");
         return;
     }
@@ -115,8 +115,8 @@ void updateContactMenu(ContactBook *cb)
         return;
     }
 
-    int idx = findContact(cb, family, name);
-    if (idx == -1) {
+    Contact old;
+    if (findContact(cb, family, name, &old) == -1) {
         printf("Ошибка: такого контакта не существует.\n");
         return;
     }
@@ -132,18 +132,17 @@ void updateContactMenu(ContactBook *cb)
         return;
     }
 
-    const Contact *old = getContactAt(cb, idx);
     Contact merged;
     memset(&merged, 0, sizeof(merged));
 
     snprintf(merged.family, sizeof(merged.family), "%s", entered.family);
     snprintf(merged.name, sizeof(merged.name), "%s", entered.name);
 
-    mergeField(merged.surname, sizeof(merged.surname), old->surname, entered.surname);
-    mergeField(merged.workplace, sizeof(merged.workplace), old->workplace, entered.workplace);
-    mergeField(merged.position, sizeof(merged.position), old->position, entered.position);
-    mergeField(merged.phone_number, sizeof(merged.phone_number), old->phone_number, entered.phone_number);
-    mergeField(merged.emails, sizeof(merged.emails), old->emails, entered.emails);
+    mergeField(merged.surname,      sizeof(merged.surname),      old.surname,      entered.surname);
+    mergeField(merged.workplace,    sizeof(merged.workplace),    old.workplace,    entered.workplace);
+    mergeField(merged.position,     sizeof(merged.position),     old.position,     entered.position);
+    mergeField(merged.phone_number, sizeof(merged.phone_number), old.phone_number, entered.phone_number);
+    mergeField(merged.emails,       sizeof(merged.emails),       old.emails,       entered.emails);
 
     if (updateContact(cb, family, name, &merged) == 0)
         printf("Контакт успешно обновлён.\n");

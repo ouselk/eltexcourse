@@ -13,7 +13,8 @@ void initContactBook(ContactBook *cb)
     cb->size = CONTACT_BOOK_SIZE;
 }
 
-int findContact(const ContactBook *cb, const char *family, const char *name)
+int findContact(const ContactBook *cb, const char *family, const char *name,
+                Contact *out)
 {
     if (cb == NULL || family == NULL || name == NULL)
         return -1;
@@ -21,8 +22,11 @@ int findContact(const ContactBook *cb, const char *family, const char *name)
     for (int i = 0; i < cb->size; i++) {
         if (isUsed(&cb->contacts[i]) &&
             strcmp(cb->contacts[i].family, family) == 0 &&
-            strcmp(cb->contacts[i].name, name) == 0)
+            strcmp(cb->contacts[i].name, name) == 0) {
+            if (out != NULL)
+                *out = cb->contacts[i];
             return i;
+        }
     }
     return -1;
 }
@@ -37,7 +41,7 @@ int addContact(ContactBook *cb, const Contact *contact)
         return -1;
 
     /* контакт с такими Ф и И уже есть */
-    if (findContact(cb, contact->family, contact->name) != -1)
+    if (findContact(cb, contact->family, contact->name, NULL) != -1)
         return -1;
 
     for (int i = 0; i < cb->size; i++) {
@@ -51,7 +55,7 @@ int addContact(ContactBook *cb, const Contact *contact)
 
 int delContact(ContactBook *cb, const char *family, const char *name)
 {
-    int idx = findContact(cb, family, name);
+    int idx = findContact(cb, family, name, NULL);
     if (idx == -1)
         return -1;
 
@@ -65,11 +69,10 @@ int updateContact(ContactBook *cb, const char *family, const char *name,
     if (cb == NULL || new_contact == NULL)
         return -1;
 
-    int idx = findContact(cb, family, name);
+    Contact old;
+    int idx = findContact(cb, family, name, &old);
     if (idx == -1)
         return -1;
-
-    Contact old = cb->contacts[idx];
 
     if (delContact(cb, family, name) != 0)
         return -1;
@@ -108,11 +111,3 @@ void printContacts(const ContactBook *cb)
     if (n == 0)
         printf("Список контактов пуст.\n");
 }
-
-const Contact *getContactAt(const ContactBook *cb, int idx)
-{
-    if (cb == NULL)
-        return NULL;
-    return &(cb->contacts[idx]);
-}
-
