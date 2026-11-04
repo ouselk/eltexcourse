@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     unsigned long outside = n - inside;
 
     int k = countOnes(mask);
-    double theory = ldexp(1.0, -k);
+    double theory = ldexp(1.0, 32-k);
 
     char gwStr[16], maskStr[16];
     ipToString(gateway, gwStr);
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     printf("Обработано пакетов: %lu\n", n);
     printf("Своя подсеть:  %lu шт. (%.6f%%)\n", inside, 100.0 * (double)inside / (double)n);
     printf("Другие сети:   %lu шт. (%.6f%%)\n", outside, 100.0 * (double)outside / (double)n);
-    printf("Теоретическая доля попадания в свою подсеть: %.10f%%\n", 100.0 * theory);
+    printf("Теоретическая доля попадания в свою подсеть: %.10f%%\n", (theory/ldexp(1.0, 32))*100);
 
     return 0;
 }

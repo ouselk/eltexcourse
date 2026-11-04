@@ -23,6 +23,6 @@ int  qIsEmpty(const Queue *q);
 int qPush(Queue *q, int data, uint8_t priority);
 int qPop(Queue *q, QueueNode *out);                              /* первый в очереди */
 int qPopPriority(Queue *q, uint8_t priority, QueueNode *out);    /* приоритет == priority */
-int qPopNoLowerPriority(Queue *q, uint8_t priority, QueueNode *out); /* приоритет не ниже priority */
+int qPopNoLowerPriority(Queue *q, uint8_t priority, QueueNode *out);
 
 #endif

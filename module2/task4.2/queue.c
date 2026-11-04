@@ -66,8 +66,17 @@ int qPopPriority(Queue *q, uint8_t priority, QueueNode *out) {
     return 0;
 }
 
-int qPopNoLowerPriority(Queue *q, uint8_t priority, QueueNode *out) {
-    if (!q->head || q->head->priority > priority) return 0;
-    takeNode(q, q->head, out);
+int qPopNoLowerPriority(Queue *q, uint8_t priority, QueueNode *out)
+{
+    QueueNode *n = q->tail;
+    while (n && n->priority > priority)
+        n = n->prev;
+    if (!n) return 0;
+ 
+    /* Среди элементов с тем же приоритетом берём самый старый (FIFO). */
+    while (n->prev && n->prev->priority == n->priority)
+        n = n->prev;
+ 
+    takeNode(q, n, out);
     return 1;
 }
