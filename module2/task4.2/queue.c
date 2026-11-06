@@ -73,7 +73,6 @@ int qPopNoLowerPriority(Queue *q, uint8_t priority, QueueNode *out)
         n = n->prev;
     if (!n) return 0;
  
-    /* Среди элементов с тем же приоритетом берём самый старый (FIFO). */
     while (n->prev && n->prev->priority == n->priority)
         n = n->prev;
  
