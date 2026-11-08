@@ -18,13 +18,15 @@ typedef struct {
     char emails[EMAIL_LEN];
 } Contact;
 
+struct TreeNode;
+
 typedef struct {
-    Contact contacts[CONTACT_BOOK_SIZE];
+    struct TreeNode *root;
+    int count;
     int size;
 } ContactBook;
 
 void initContactBook(ContactBook *cb);
-
 int findContact(const ContactBook *cb, const char *family, const char *name,
                 Contact *out);
 
