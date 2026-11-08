@@ -22,7 +22,7 @@ typedef struct {
     Contact contacts[CONTACT_BOOK_SIZE];
     int size;
 } ContactBook;
-
+//
 void initContactBook(ContactBook *cb);
 
 int findContact(const ContactBook *cb, const char *family, const char *name,

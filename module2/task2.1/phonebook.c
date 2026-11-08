@@ -68,7 +68,7 @@ int updateContact(ContactBook *cb, const char *family, const char *name,
 {
     if (cb == NULL || new_contact == NULL)
         return -1;
-
+//
     Contact old;
     int idx = findContact(cb, family, name, &old);
     if (idx == -1)
