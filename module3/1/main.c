@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "ch_communicate.h"
 
 int main(int argc, char* argv[])
 {
@@ -47,19 +48,35 @@ int main(int argc, char* argv[])
     {
         FILE *fp = fopen(filenames[i],);
 
-        if (fp!=NULL)
+        if (fp==NULL)
+        {
+            fprintf(stderr, "Файла с именем %s не существует\n", filenames[i]);
+            continue;
+        }
 
         pid_t pid;
-        int rv; 
+        int m_to_s[2];
+        pipe (m_to_s);
+        int s_to_m[2];
+        pipe(s_to_m);
+
         switch (pid = fork())
         {
             case -1:
                 perror("fork");
                 exit(EXIT_FAILURE);
+
             case 0:
-                printf("CHILD: PID - %d\n", getpid());
-                printf("CHILD: PPID - %d\n", getppid());
-                _exit(EXIT_SUCCESS);
+                close(m_to_s[1]);
+                close(s_to_m[0]);
+                
+                send_ready_rcv(s_to_m[1]);
+
+                BorkaProtokolPackage answer;
+                
+                
+
+
             default:
                 printf("PARENT: PID -%d\n", getpid());
                 printf("PARENT: CHILD PID - %d\n", pid);
