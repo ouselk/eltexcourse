@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
                 if (fd<0)
                 {
                     fprintf(stderr, "Файла с именем %s не существует\n", filenames[i]);
-                    continue;
+                    exit(EXIT_FAILURE);
                 }
                 char buf[PACKAGE_SIZE] = {'\0'};
                 struct stat file_info;
