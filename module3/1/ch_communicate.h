@@ -20,9 +20,9 @@ typedef struct
 } BorkaProtocolPackage;
 
 int send_package(const BorkaProtocolPackage* pkg, int fdx);
-int send_message(char msg[], int fdx);
+//int send_message(char msg[], int fdx);
 int send_ready_rcv(int fdx);
-int send_name_and_size(char name[], int size, int fdx);
+int send_name_and_size(char name[], long long size, int fdx);
 int send_end(int fdx);
 
 int read_package(int fdx, BorkaProtocolPackage* result);
