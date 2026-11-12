@@ -8,20 +8,26 @@
 #include <sys/stat.h>
 #include "ch_communicate.h"
 #include "files.h"
-
+#include <fcntl.h>
+ 
 #define MAX_FILE_NAME_LEN 128
 
 int main(int argc, char* argv[])
 {
 
-    char *ch_name = NULL;
+    char *fifo_name = NULL;
     char* filenames[argc];
     int file_count = 0;
     for (int i = 1; i<argc; i++)
     {
+        if (strlen(argv[i])>=MAX_FILE_NAME_LEN)
+        {
+            fprintf(stderr, "Слишком длинное имя файла или параметра: %s\n", argv[i]);
+            exit(EXIT_FAILURE);
+        }
         if (strcmp(argv[i], "-p")==0)
         {
-            if (ch_name!=NULL)
+            if (fifo_name!=NULL)
             {
                 fprintf(stderr, "Так не красиво поступать\n");
                 exit(EXIT_FAILURE);
@@ -33,20 +39,12 @@ int main(int argc, char* argv[])
             }
             else
             {
-                ch_name = argv[++i];
+                fifo_name = argv[++i];
             }
         }
         else
         {
-            if (strlen(argv[i])<MAX_FILE_NAME_LEN)
-            {
-                filenames[file_count++]=argv[i];
-            }
-            else
-            {
-                fprintf(stderr, "Слишком длинное имя файла\n");
-                exit(EXIT_FAILURE);
-            }
+            filenames[file_count++]=argv[i];
         }
     }
 
@@ -60,10 +58,26 @@ int main(int argc, char* argv[])
 
     pid_t pid;
     int m_to_s[2];
-    pipe (m_to_s);
     int s_to_m[2];
-    pipe(s_to_m);
+    char fifo_mtos_name[MAX_FILE_NAME_LEN+11] = {'\0'};
+    char fifo_stom_name[MAX_FILE_NAME_LEN+11] = {'\0'};
+    if (fifo_name!=NULL)
+    {
+        strcat(fifo_mtos_name, "/tmp/");
+        strcat(fifo_mtos_name, fifo_name);
+        strcat(fifo_mtos_name, "_mtos");
+        strcat(fifo_stom_name, "/tmp/");
+        strcat(fifo_stom_name, fifo_name);
+        strcat(fifo_stom_name, "_stom");
 
+        mkfifo(fifo_mtos_name, 0666);
+        mkfifo(fifo_stom_name, 0666);
+    }
+    else
+    {
+        pipe(m_to_s);
+        pipe(s_to_m);
+    }
     fflush(NULL);
     switch (pid = fork())
     {
@@ -72,8 +86,16 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
 
         case 0:
-            close(m_to_s[1]);
-            close(s_to_m[0]);
+            if (fifo_name!=NULL)
+            {
+                m_to_s[0] = open(fifo_mtos_name, O_RDONLY);
+                s_to_m[1] = open(fifo_stom_name, O_WRONLY);
+            }
+            else
+            {
+                close(m_to_s[1]);
+                close(s_to_m[0]);
+            }
             
 
             BorkaProtocolPackage answer = {UNKNOWN, '\0', 0};
@@ -84,7 +106,7 @@ int main(int argc, char* argv[])
             send_ready_rcv(s_to_m[1]);
             while(answer.type!=MASTER_NOTIFICATE_ABOUT_END)
             {
-                if (read_package(m_to_s[0], &answer)!=0);
+                if (read_package(m_to_s[0], &answer)<0)
                 {
                     fprintf(stderr, "Родитель оборвал передачу\n");
                     exit(EXIT_FAILURE);
@@ -117,13 +139,25 @@ int main(int argc, char* argv[])
 
 
         default:
-            close(m_to_s[0]);
-            close(s_to_m[1]);
+            if (fifo_name!=NULL)
+            {
+                m_to_s[1] = open(fifo_mtos_name, O_WRONLY);
+                s_to_m[0] = open(fifo_stom_name, O_RDONLY); 
+            }
+            else
+            {
+                close(m_to_s[0]);
+                close(s_to_m[1]);
+            }
 
             BorkaProtocolPackage answ = {UNKNOWN, '\0', 0};
             while (answ.type!=SLAVE_READY_RECIEVE)
             {
-                read_package(s_to_m[0], &answ);
+                if (read_package(s_to_m[0], &answ)<0)
+                {
+                    fprintf(stderr, "ребенок сдох\n");
+                    exit(EXIT_FAILURE);
+                }
             }
             for (int i=0; i<file_count; i++)
             {
@@ -147,6 +181,11 @@ int main(int argc, char* argv[])
             }
             send_end(m_to_s[1]);
             wait(NULL);
+            if (fifo_name!=NULL)
+            {
+                unlink(fifo_mtos_name);
+                unlink(fifo_stom_name);
+            }
     }
     
 
