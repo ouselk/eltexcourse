@@ -234,6 +234,11 @@ int main(int argc, char* argv[])
                 unlink(fifo_mtos_name);
                 unlink(fifo_stom_name);
             }
+            else
+            {
+                close(m_to_s[1]);
+                close(s_to_m[0]);
+            }
     }
     
 
