@@ -70,13 +70,29 @@ int main(int argc, char* argv[])
         strcat(fifo_stom_name, fifo_name);
         strcat(fifo_stom_name, "_stom");
 
-        mkfifo(fifo_mtos_name, 0666);
-        mkfifo(fifo_stom_name, 0666);
+        if ((mkfifo(fifo_mtos_name, 0666))==-1)
+        {
+            perror("ОШибка");
+            exit(EXIT_FAILURE);
+        }
+        if ((mkfifo(fifo_stom_name, 0666)) == -1)
+        {
+            perror("ОШибка");
+            exit(EXIT_FAILURE);
+        }
     }
     else
     {
-        pipe(m_to_s);
-        pipe(s_to_m);
+        if ((pipe(m_to_s)) == -1)
+        {
+            perror("ОШибка");
+            exit(EXIT_FAILURE);
+        }
+        if ((pipe(s_to_m)) == -1)
+        {
+            perror("ОШибка");
+            exit(EXIT_FAILURE);
+        }
     }
     fflush(NULL);
     switch (pid = fork())
@@ -88,13 +104,29 @@ int main(int argc, char* argv[])
         case 0:
             if (fifo_name!=NULL)
             {
-                m_to_s[0] = open(fifo_mtos_name, O_RDONLY);
-                s_to_m[1] = open(fifo_stom_name, O_WRONLY);
+                if ((m_to_s[0] = open(fifo_mtos_name, O_RDONLY)) == -1)
+                {
+                    perror("ОШибка");
+                    exit(EXIT_FAILURE);
+                }
+                if ((s_to_m[1] = open(fifo_stom_name, O_WRONLY)) == -1)
+                {
+                    perror("ОШибка");
+                    exit(EXIT_FAILURE);
+                }
             }
             else
             {
-                close(m_to_s[1]);
-                close(s_to_m[0]);
+                if ((close(m_to_s[1])) == -1)
+                {
+                    perror("ОШибка");
+                    exit(EXIT_FAILURE);
+                }
+                if ((close(s_to_m[0])) == -1)
+                {
+                    perror("ОШибка");
+                    exit(EXIT_FAILURE);
+                }
             }
             
 
@@ -141,13 +173,29 @@ int main(int argc, char* argv[])
         default:
             if (fifo_name!=NULL)
             {
-                m_to_s[1] = open(fifo_mtos_name, O_WRONLY);
-                s_to_m[0] = open(fifo_stom_name, O_RDONLY); 
+                if ((m_to_s[1] = open(fifo_mtos_name, O_WRONLY)) == -1)
+                {
+                    perror("ОШибка");
+                    exit(EXIT_FAILURE);
+                }
+                if ((s_to_m[0] = open(fifo_stom_name, O_RDONLY)) == -1)
+                {
+                    perror("ОШибка");
+                    exit(EXIT_FAILURE);
+                }
             }
             else
             {
-                close(m_to_s[0]);
-                close(s_to_m[1]);
+                if ((close(m_to_s[0])) ==-1)
+                {
+                    perror("ОШибка");
+                    exit(EXIT_FAILURE);
+                }
+                if ((close(s_to_m[1])) == -1)
+                {
+                    perror("ОШибка");
+                    exit(EXIT_FAILURE);
+                }
             }
 
             BorkaProtocolPackage answ = {UNKNOWN, '\0', 0};
