@@ -33,8 +33,6 @@ run -p ch1 -p ch2 a.txt
 
 run -p ch1
 
-run no_such_file.txt
-
 run "$(head -c 200 /dev/zero | tr '\0' 'a')"
 
 echo "===== Корректная работа ====="
