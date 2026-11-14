@@ -1,16 +1,15 @@
 
-#ifndef HASHTABLE_H
-#define HASHTABLE_H
+#ifndef HASHMAP_H
+#define HASHMAP_H
 
-#include <sys/types.h>
-
+#include "pids_array.h"
+#include "communicate.h"
 #define HASH_SIZE 1024
-#define MAX_KEY 256
+#define MAX_KEY TOPIC_MAX_LEN
 
 typedef struct HashNode {
     char key[MAX_KEY];
-    pid_t *value;
-    size_t count;
+    PidsArray value;
     struct HashNode *next;
 } HashNode;
 
@@ -20,7 +19,7 @@ typedef struct {
 
 HashTable *ht_create(void);
 int ht_insert(HashTable *ht, const char *key, pid_t pid);
-int ht_get(HashTable *ht, const char *key, pid_t **pids, size_t *count);
+PidsArray *ht_get(HashTable *ht, const char *key);
 int ht_remove(HashTable *ht, const char *key);
 void ht_destroy(HashTable *ht);
 

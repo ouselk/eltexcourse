@@ -29,16 +29,8 @@ int ht_insert(HashTable *ht, const char *key, pid_t pid)
     HashNode *node = ht->buckets[index];
 
     while (node) {
-        if (strcmp(node->key, key) == 0) {
-            pid_t *tmp = realloc(node->value,
-                                 (node->count + 1) * sizeof(pid_t));
-            if (!tmp)
-                return -1;
-
-            node->value = tmp;
-            node->value[node->count++] = pid;
-            return 0;
-        }
+        if (strcmp(node->key, key) == 0)
+            return pids_array_add(&node->value, pid);
 
         node = node->next;
     }
@@ -49,14 +41,10 @@ int ht_insert(HashTable *ht, const char *key, pid_t pid)
 
     strcpy(node->key, key);
 
-    node->value = malloc(sizeof(pid_t));
-    if (!node->value) {
+    if (pids_array_add(&node->value, pid) != 0) {
         free(node);
         return -1;
     }
-
-    node->value[0] = pid;
-    node->count = 1;
 
     node->next = ht->buckets[index];
     ht->buckets[index] = node;
@@ -64,25 +52,22 @@ int ht_insert(HashTable *ht, const char *key, pid_t pid)
     return 0;
 }
 
-int ht_get(HashTable *ht, const char *key, pid_t **pids, size_t *count)
+PidsArray *ht_get(HashTable *ht, const char *key)
 {
-    if (!ht || !key || !pids || !count)
-        return -1;
+    if (!ht || !key)
+        return NULL;
 
     unsigned long index = hash(key);
     HashNode *node = ht->buckets[index];
 
     while (node) {
-        if (strcmp(node->key, key) == 0) {
-            *pids = node->value;
-            *count = node->count;
-            return 0;
-        }
+        if (strcmp(node->key, key) == 0)
+            return &node->value;
 
         node = node->next;
     }
 
-    return -1;
+    return NULL;
 }
 
 int ht_remove(HashTable *ht, const char *key)
@@ -98,8 +83,10 @@ int ht_remove(HashTable *ht, const char *key)
 
         if (strcmp(node->key, key) == 0) {
             *current = node->next;
-            free(node->value);
+
+            pids_array_destroy(&node->value);
             free(node);
+
             return 0;
         }
 
@@ -119,8 +106,10 @@ void ht_destroy(HashTable *ht)
 
         while (node) {
             HashNode *next = node->next;
-            free(node->value);
+
+            pids_array_destroy(&node->value);
             free(node);
+
             node = next;
         }
     }
