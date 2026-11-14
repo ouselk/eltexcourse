@@ -1,5 +1,5 @@
 task:
-	gcc -Wall -Wextra -std=c11 main.c
+	gcc -Wall -Wextra  main.c hashmap.c pids_array.c communicate.c
 
 clean:
 	rm -f a.out

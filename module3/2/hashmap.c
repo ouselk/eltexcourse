@@ -1,5 +1,5 @@
 
-#include "hashtable.h"
+#include "hashmap.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -115,4 +115,15 @@ void ht_destroy(HashTable *ht)
     }
 
     free(ht);
+}
+int ht_remove_pid(HashTable *ht, const char *key, pid_t pid)
+{
+    PidsArray *arr = ht_get(ht, key);
+    if (!arr)
+        return -1;
+
+    pids_array_remove(arr, pid);
+    if (arr->count == 0)
+        return ht_remove(ht, key);
+    return 0;
 }

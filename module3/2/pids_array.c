@@ -38,3 +38,23 @@ void pids_array_destroy(PidsArray *array)
     array->count = 0;
     array->capacity = 0;
 }
+
+int pids_array_contains(const PidsArray *array, pid_t pid)
+{
+    for (size_t i = 0; i < array->count; i++)
+        if (array->items[i] == pid)
+            return 1;
+    return 0;
+}
+
+void pids_array_remove(PidsArray *array, pid_t pid)
+{
+    for (size_t i = 0; i < array->count; i++)
+    {
+        if (array->items[i] == pid)
+        {
+            array->items[i] = array->items[--array->count];
+            return;
+        }
+    }
+}

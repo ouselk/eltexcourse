@@ -5,125 +5,203 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <time.h>
 #include <signal.h>
 #include "communicate.h"
 #include "hashmap.h"
-#include "string_array.h"
-
+#include "pids_array.h"
 
 #define QUEUE_KEY 4444
-#define MAX_PUBLISHERS 100
 #define BROKER_WORK_TIME 120
 
-int broker(HashTable* subscribers, pid_t publishers[])
+typedef struct
 {
-    int msqid = msgget(QUEUE_KEY, IPC_CREAT | IPC_EXCL);
-    if (errno == EEXIST)
+    int msqid;
+    HashTable *subscribers;
+    PidsArray publishers;
+} BrokerState;
+
+typedef struct
+{
+    int msqid;
+    int topics_count;
+    char **topics;
+} SubState;
+
+void on_signal(int sig)
+{
+    exit(EXIT_SUCCESS);
+}
+int sendCommand(int msqid, const char *action, const char *topic)
+{
+    Message msg = {0};
+    msg.type = 1;
+    snprintf(msg.action, sizeof(msg.action), "%s", action);
+    msg.pid = getpid();
+    snprintf(msg.topic, sizeof(msg.topic), "%s", topic);
+    return sendMessage(msqid, 1, &msg);
+}
+
+void broker_exit(int status, void *arg)
+{
+  //  printf("LALALA\n");
+  //  fflush(stdout);
+    (void)status;
+    BrokerState *st = arg;
+
+    signal(SIGINT, SIG_IGN);
+    signal(SIGALRM, SIG_IGN);
+    for (size_t i = 0; i < st->publishers.count; i++)
+        kill(st->publishers.items[i], SIGINT);
+
+    PidsArray killed = {0};     // чтобы не слать SIGINT дважды одному pid
+    for (size_t i = 0; i < HASH_SIZE; i++)
     {
-        perror("Брокер уже существует.");
+        for (HashNode *node = st->subscribers->buckets[i]; node; node = node->next)
+        {
+            for (size_t j = 0; j < node->value.count; j++)
+            {
+                pid_t pid = node->value.items[j];
+                if (!pids_array_contains(&killed, pid))
+                {
+                    kill(pid, SIGINT);
+                    pids_array_add(&killed, pid);
+                }
+            }
+        }
+    }
+    pids_array_destroy(&killed);
+
+    for (int i = 0; i < 20; i++)
+    {
+        Message tmp;
+        while (msgrcv(st->msqid, &tmp, sizeof(Message) - sizeof(long), 0, IPC_NOWAIT) != -1)
+            ;
+        struct msqid_ds ds;
+        if (i > 0 && msgctl(st->msqid, IPC_STAT, &ds) == 0 && ds.msg_qnum == 0)
+            break;
+        struct timespec ts = {0, 100000000};   // 100 мс
+        nanosleep(&ts, NULL);
+    }
+
+    msgctl(st->msqid, IPC_RMID, NULL);
+
+    ht_destroy(st->subscribers);
+    pids_array_destroy(&st->publishers);
+    free(st);
+}
+
+int broker(void)
+{
+    BrokerState *st = calloc(1, sizeof(*st));
+    if (!st)
+    {
+        perror("Не получилось выделить память в брокере");
         exit(EXIT_FAILURE);
     }
-    if (msqid<0)
+
+    st->subscribers = ht_create();
+    if (!st->subscribers)
     {
-        perror("Почему-то не получилось создать очередь");
-        exit(EXIT_FAILURE)
+        perror("ht_create");
+        free(st);
+        exit(EXIT_FAILURE);
     }
 
-  //  HashTable* subscribers = ht_create();
-  //  pid_t publishers[MAX_PUBLISHERS] = {0};
+    st->msqid = msgget(QUEUE_KEY, IPC_CREAT | IPC_EXCL | 0666);
+    if (st->msqid < 0)
+    {
+        if (errno == EEXIST)
+            fprintf(stderr, "Брокер уже существует.\n");
+        else
+            perror("Не получилось создать очередь");
+        ht_destroy(st->subscribers);
+        free(st);
+        exit(EXIT_FAILURE);
+    }
 
+    on_exit(broker_exit, st);
+    signal(SIGALRM, on_signal);
     alarm(BROKER_WORK_TIME);
+
     while (1)
     {
         Message msg = {0};
-        int code = getMessage(msqid, 1, &msg);
-        if (code==-2)
-        {
+        int code = getMessage(st->msqid, 1, &msg);
+        if (code == -2)
             break;
-        } 
-        if (code==1)
+        if (code != 1)
+            continue;
+
+        if (msg.pid <= 0)
         {
-            PidsArray *topic_subs = NULL;
-            if (!topic_subs = ht_get(subscribers, msg.topic))
-            {
-                sprintf(stderr, "Пришло сообщение с темой %s, но на него никто не подписан\n", msg.topic);
-                continue;
-            }
-            
-            for (int i=0; i<topic_subs->count; i++)
-            {
-                sendMessage(msqid, topic_subs->items[i], &msg);
-            }
+            fprintf(stderr, "Некорректный pid в сообщении\n");
+            continue;
         }
-        else if (getMessage(msqid, 0, &msg)==1)
+
+        if (strcmp(msg.action, ACT_SEND) == 0)
         {
-            char* endptr;
-            pid_t sub_pid = strtol(msg->topic, &endptr, 10);
-            if (*enptr!='\0')
-            {
-                sprintf(stderr, "Процесс c pid %s попытался подписаться на %s. Но этот pid не корректный.\n",
-                    msg->topic, msg->payload);
+            if (!pids_array_contains(&st->publishers, msg.pid))
+                pids_array_add(&st->publishers, msg.pid);
+
+            PidsArray *topic_subs = ht_get(st->subscribers, msg.topic);
+            if (!topic_subs)
                 continue;
-            }
-            if (!ht_insert(subscribers, msg->payload, sub_pid))
-            {
-                sprintf(stderr, "Процесс с pid %s попытался подписаться на %s. Но запись не вставилась в хэш-таблицу.\n",
-                msg->topic, msg->payload);
-            }
+
+            for (size_t i = 0; i < topic_subs->count; i++)
+                sendMessage(st->msqid, topic_subs->items[i], &msg);
+        }
+        else if (strcmp(msg.action, ACT_SUBSCRIBE) == 0)
+        {
+            if (ht_insert(st->subscribers, msg.topic, msg.pid) != 0)
+                fprintf(stderr, "Процессу %d: не удалось подписаться на %s\n",
+                        msg.pid, msg.topic);
+        }
+        else if (strcmp(msg.action, ACT_UNSUBSCRIBE) == 0)
+        {
+            ht_remove_pid(st->subscribers, msg.topic, msg.pid);
+        }
+        else
+        {
+            fprintf(stderr, "Неизвестное действие: %s\n", msg.action);
         }
     }
 
     return 0;
 }
 
-
-static int genMessage(Message *msg)
+int genMessage(Message *msg, const char *topic)
 {
-    
-    if (!msg)
+    if (!msg || !topic)
     {
         return -1;
     }
 
-    const char* topics[] = {"спорт", "приколы", "землеройковедение",
-        "о погоде", "ALARM"};
     const char* payloads[] = {"в четверг четвертого числа что-то произошло",
     "это очень важное сообщение", "кто-то там что-то там", "не пропустите...",
     "яблоки 100р/кг", "всем привет", "овчарка сбежала из будки", "СРОЧНО, а нет, не срочно"};
 
     enum
     {
-        topic_count = sizeof(topics) / sizeof(topics[0]),
         payload_count = sizeof(payloads) / sizeof(payloads[0])
     };
 
     msg->type = 1;
-    snprintf(msg->topic, sizeof(msg->topic), "%s",
-             topics[rand() % topic_count]);
-    
-    int written = snprintf(
-        msg->payload,
-        sizeof(msg->payload),
-        "send,%ld,%s,%s",
-        (long)getpid(),
-        topic,
-        payload
-    );
-
-    if (written < 0 || (size_t)written >= sizeof(msg->payload))
-        return -1;
-
+    snprintf(msg->action, sizeof(msg->action), "%s", ACT_SEND);
+    msg->pid = getpid();
+    snprintf(msg->topic, sizeof(msg->topic), "%s", topic);
+    snprintf(msg->payload, sizeof(msg->payload), "%s",
+             payloads[rand() % payload_count]);
 
     return 0;
 }
 
-int publisher()
+int publisher(const char *topic)
 {
-
     int msqid = msgget(QUEUE_KEY, 0);
-    if (msqid<0)
+    if (msqid < 0)
     {
         perror("Не удалось открыть очередь");
         exit(EXIT_FAILURE);
@@ -132,87 +210,123 @@ int publisher()
     while (1)
     {
         Message msg = {0};
-        genMessage(&msg);
-        sendMessage(msqid, 1, &msg);
-        sleep(rand()%5);
+        if (genMessage(&msg, topic) == 0)
+        {
+            if (sendMessage(msqid, 1, &msg) == -2)
+                break;      // очередь удалена
+        }
+        sleep(1 + rand() % 5);
     }
-    
+
     return 0;
 }
 
-int subscriber(int topics_count, char* topics)
+void sub_exit(int status, void *arg)
+{
+    SubState *st = arg;
+
+    signal(SIGINT, SIG_IGN);
+    signal(SIGALRM, SIG_IGN);
+    
+    for (int i = 0; i < st->topics_count; i++)
+    {
+        if (sendCommand(st->msqid, ACT_UNSUBSCRIBE, st->topics[i]) == -2)
+            break;      // очередь уже удалена
+    }
+
+    free(st);
+}
+
+int subscriber(int topics_count, char* topics[])
 {
     int msqid = msgget(QUEUE_KEY, 0);
-    if (msqid<0)
+    if (msqid < 0)
     {
         perror("Не удалось открыть очередь");
         exit(EXIT_FAILURE);
     }
-    
-    for (int i =0; i <0; i++)
+
+    SubState *st = calloc(1, sizeof(*st));
+    if (!st)
     {
-        Message msg = {0};
-        msg.type=1;
-        snprintf(msg.topic, sizeof(msg.topic), "%s", topics[i]);
-        snprintf(msg.payload, sizeof(msg.topic), "subscribe,%ld,%s", 
-        (long) getpid(), topics[i]);
-        sendMessage(msqid, 1, &msg);
+        perror("calloc");
+        exit(EXIT_FAILURE);
+    }
+    st->msqid = msqid;
+    st->topics_count = topics_count;
+    st->topics = topics;
+
+    on_exit(sub_exit, st);
+
+    for (int i = 0; i < topics_count; i++)
+    {
+        if (sendCommand(msqid, ACT_SUBSCRIBE, topics[i]) == -2)
+            return 0;
     }
 
-    Message msg = {0};
     while (1)
     {
+        Message msg = {0};
         int code = getMessage(msqid, getpid(), &msg);
-        if (code==1)
-        {
-            printf("New message\nTopic:%s\nMessage:%s\n", msg.topic, msg.payload);
-        } else if (code==-2)
-        {
-            break;
-        }
+        if (code == 1)
+            printf("New message\nFrom: %d\nTopic: %s\nMessage: %s\n",
+                   (int)msg.pid, msg.topic, msg.payload);
+        else if (code == -2)
+            return 0;
     }
 }
 
 
-void broker_exit(HashTable* subscribers, pid_t publishers[])
+
+void printHelpMessage(const char *prog)
 {
-    for (int i=0; i<MAX_PUBLISHERS; i++)
+    fprintf(stderr,
+            "Использование:\n"
+            "  %s -b                      брокер\n"
+            "  %s -p <тема>               издатель\n"
+            "  %s -s <тема> [тема ...]    подписчик\n",
+            prog, prog, prog);
+}
+ 
+int main(int argc, char* argv[])
+{
+    if (argc < 2 || argv[1][0] != '-' || argv[1][1] == '\0' || argv[1][2] != '\0')
     {
-        if (publishers[i])
-        {
-            kill(publishers[i], SIGINT);
-        }
+        printHelpMessage(argv[0]);
+        return EXIT_FAILURE;
     }
-    for (size_t i = 0; i < HASH_SIZE; i++)
+
+    signal(SIGINT, on_signal);
+
+    switch (argv[1][1])
     {
-        HashNode *node =subscribers->buckets[i];
-
-        while (node)
+    case 'b':
+        if (argc != 2)
         {
-            for (int j = 0; j < node->value.count; j++)
-            {
-                kill(node->value.items[j], SIGINT);
-            }
-
-            node = node->next;
+            printHelpMessage(argv[0]);
+            return EXIT_FAILURE;
         }
+        return broker();
+
+    case 'p':
+        if (argc != 3)
+        {
+            printHelpMessage(argv[0]);
+            return EXIT_FAILURE;
+        }
+        srand((unsigned)time(NULL) ^ (unsigned)getpid());
+        return publisher(argv[2]);
+
+    case 's':
+        if (argc < 3)
+        {
+            printHelpMessage(argv[0]);
+            return EXIT_FAILURE;
+        }
+        return subscriber(argc - 2, &argv[2]);
+
+    default:
+        printHelpMessage(argv[0]);
+        return EXIT_FAILURE;
     }
-}
-
-void sub_exit()
-{
-        Message msg = {0};
-        msg.type=1;
-        snprintf(msg.topic, sizeof(msg.topic), "%s", topics[i]);
-        snprintf(msg.payload, sizeof(msg.topic), "unsubscribe,%ld,%s", 
-        (long) getpid(), topics[i]);
-        sendMessage(msqid, 1, &msg);
-}
-
-int main (int argc, char* argv[])
-{
-    HashTable* subscribers = ht_create();
-    pid_t publishers[MAX_PUBLISHERS] = {0};
-    srand(1488);
-    broker();
 }

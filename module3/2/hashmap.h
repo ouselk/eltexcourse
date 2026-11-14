@@ -22,5 +22,6 @@ int ht_insert(HashTable *ht, const char *key, pid_t pid);
 PidsArray *ht_get(HashTable *ht, const char *key);
 int ht_remove(HashTable *ht, const char *key);
 void ht_destroy(HashTable *ht);
+int ht_remove_pid(HashTable *ht, const char *key, pid_t pid);
 
 #endif

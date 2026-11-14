@@ -13,5 +13,6 @@ typedef struct {
 
 int pids_array_add(PidsArray *array, pid_t pid);
 void pids_array_destroy(PidsArray *array);
-
+int  pids_array_contains(const PidsArray *array, pid_t pid);
+void pids_array_remove(PidsArray *array, pid_t pid);
 #endif
