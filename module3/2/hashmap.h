@@ -3,8 +3,9 @@
 #define HASHMAP_H
 
 #include <sys/types.h>
+#include "communicate.h"
 #define HASH_CAPACITY 1024
-#define MAX_KEY 64
+#define MAX_KEY TOPIC_MAX_LEN
 
 typedef struct HashNode {
     char key[MAX_KEY];
