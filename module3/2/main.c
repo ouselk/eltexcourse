@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
 #include "communicate.h"
 #include "hashmap.h"
 #include "string_array.h"
@@ -14,8 +15,9 @@
 
 #define QUEUE_KEY 4444
 #define MAX_PUBLISHERS 100
+#define BROKER_WORK_TIME 120
 
-int broker()
+int broker(HashTable* subscribers, pid_t publishers[])
 {
     int msqid = msgget(QUEUE_KEY, IPC_CREAT | IPC_EXCL);
     if (errno == EEXIST)
@@ -29,13 +31,19 @@ int broker()
         exit(EXIT_FAILURE)
     }
 
-    HashTable* subscribers = ht_create();
-    pid_t publishers[MAX_PUBLISHERS] = {0};
+  //  HashTable* subscribers = ht_create();
+  //  pid_t publishers[MAX_PUBLISHERS] = {0};
 
+    alarm(BROKER_WORK_TIME);
     while (1)
     {
         Message msg = {0};
-        if (getMessage(msqid, 1, &msg))
+        int code = getMessage(msqid, 1, &msg);
+        if (code==-2)
+        {
+            break;
+        } 
+        if (code==1)
         {
             PidsArray *topic_subs = NULL;
             if (!topic_subs = ht_get(subscribers, msg.topic))
@@ -49,7 +57,7 @@ int broker()
                 sendMessage(msqid, topic_subs->items[i], &msg);
             }
         }
-        else if (getMessage(msqid, 0, &msg))
+        else if (getMessage(msqid, 0, &msg)==1)
         {
             char* endptr;
             pid_t sub_pid = strtol(msg->topic, &endptr, 10);
@@ -154,26 +162,57 @@ int subscriber(int topics_count, char* topics)
     Message msg = {0};
     while (1)
     {
-        if (!getMessage(msqid, getpid(), &msg))
+        int code = getMessage(msqid, getpid(), &msg);
+        if (code==1)
         {
             printf("New message\nTopic:%s\nMessage:%s\n", msg.topic, msg.payload);
+        } else if (code==-2)
+        {
+            break;
         }
     }
 }
 
 
-void broker_exit()
+void broker_exit(HashTable* subscribers, pid_t publishers[])
 {
+    for (int i=0; i<MAX_PUBLISHERS; i++)
+    {
+        if (publishers[i])
+        {
+            kill(publishers[i], SIGINT);
+        }
+    }
+    for (size_t i = 0; i < HASH_SIZE; i++)
+    {
+        HashNode *node =subscribers->buckets[i];
 
+        while (node)
+        {
+            for (int j = 0; j < node->value.count; j++)
+            {
+                kill(node->value.items[j], SIGINT);
+            }
+
+            node = node->next;
+        }
+    }
 }
 
 void sub_exit()
 {
-
+        Message msg = {0};
+        msg.type=1;
+        snprintf(msg.topic, sizeof(msg.topic), "%s", topics[i]);
+        snprintf(msg.payload, sizeof(msg.topic), "unsubscribe,%ld,%s", 
+        (long) getpid(), topics[i]);
+        sendMessage(msqid, 1, &msg);
 }
 
 int main (int argc, char* argv[])
 {
+    HashTable* subscribers = ht_create();
+    pid_t publishers[MAX_PUBLISHERS] = {0};
     srand(1488);
     broker();
 }
