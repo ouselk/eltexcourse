@@ -2,10 +2,17 @@
 #include "hashtable.h"
 
 #include <stdlib.h>
+#include <string.h>
 
-static unsigned int hash(pid_t key)
+static unsigned int hash(const char *key)
 {
-    return (unsigned int)key % HASH_SIZE;
+    unsigned int hash = 5381;
+    int c;
+
+    while ((c = (unsigned char)*key++))
+        hash = ((hash << 5) + hash) + c;
+
+    return hash % HASH_SIZE;
 }
 
 HashTable *ht_create(void)
@@ -13,51 +20,40 @@ HashTable *ht_create(void)
     return calloc(1, sizeof(HashTable));
 }
 
-int ht_insert(HashTable *ht, pid_t key, const char *str)
+int ht_insert(HashTable *ht, const char *key, pid_t value)
 {
-    if (!ht || !str)
+    if (!ht || !key || strlen(key) >= MAX_KEY)
         return -1;
 
     unsigned int index = hash(key);
 
-    // Проверяем, существует ли PID
     for (HashNode *node = ht->buckets[index];
          node != NULL;
          node = node->next)
     {
-        if (node->key == key) {
-            // PID существует — добавляем строку
-            return string_array_push(&node->value, str);
+        if (strcmp(node->key, key) == 0) {
+            node->value = value;
+            return 0;
         }
     }
-
-    // PID не существует — создаём новый узел
     HashNode *node = malloc(sizeof(HashNode));
 
     if (!node)
         return -1;
 
-    string_array_init(&node->value);
+    strcpy(node->key, key);
+    node->value = value;
 
-    // Добавляем первую строку
-    if (string_array_push(&node->value, str) != 0) {
-        string_array_destroy(&node->value);
-        free(node);
-        return -1;
-    }
-
-    node->key = key;
     node->next = ht->buckets[index];
-
     ht->buckets[index] = node;
 
     return 0;
 }
 
-const StringArray *ht_get(const HashTable *ht, pid_t key)
+int ht_get(const HashTable *ht, const char *key, pid_t *value)
 {
-    if (!ht)
-        return NULL;
+    if (!ht || !key || !value)
+        return -1;
 
     unsigned int index = hash(key);
 
@@ -65,36 +61,30 @@ const StringArray *ht_get(const HashTable *ht, pid_t key)
          node != NULL;
          node = node->next)
     {
-        if (node->key == key)
-            return &node->value;
+        if (strcmp(node->key, key) == 0) {
+            *value = node->value;
+            return 0;
+        }
     }
 
-    return NULL;
+    return -1;
 }
 
-int ht_remove(HashTable *ht, pid_t key, const char *str)
+int ht_remove(HashTable *ht, const char *key)
 {
-    if (!ht || !str)
+    if (!ht || !key)
         return -1;
 
     unsigned int index = hash(key);
     HashNode **current = &ht->buckets[index];
 
     while (*current) {
-        if ((*current)->key == key) {
-            HashNode *node = *current;
+        if (strcmp((*current)->key, key) == 0) {
+            HashNode *tmp = *current;
 
-            // Удаляем строку из массива
-            if (string_array_remove(&node->value, str) != 0)
-                return -1;
+            *current = tmp->next;
 
-            // Если массив опустел — удаляем узел
-            if (node->value.count == 0) {
-                *current = node->next;
-
-                string_array_destroy(&node->value);
-                free(node);
-            }
+            free(tmp);
 
             return 0;
         }
@@ -110,15 +100,13 @@ void ht_destroy(HashTable *ht)
     if (!ht)
         return;
 
-    for (size_t i = 0; i < HASH_SIZE; i++) {
+    for (int i = 0; i < HASH_SIZE; i++) {
         HashNode *node = ht->buckets[i];
 
         while (node) {
             HashNode *next = node->next;
 
-            string_array_destroy(&node->value);
             free(node);
-
             node = next;
         }
     }

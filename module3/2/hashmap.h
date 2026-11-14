@@ -1,16 +1,14 @@
 
-#ifndef HASHTABLE_H
-#define HASHTABLE_H
+#ifndef HASHMAP_H
+#define HASHMAP_H
 
 #include <sys/types.h>
-
-#include "string_array.h"
-
 #define HASH_CAPACITY 1024
+#define MAX_KEY 64
 
 typedef struct HashNode {
-    pid_t key;
-    StringArray value;
+    char key[MAX_KEY];
+    pid_t value;
     struct HashNode *next;
 } HashNode;
 
@@ -19,13 +17,9 @@ typedef struct {
 } HashTable;
 
 HashTable *ht_create(void);
-
-int ht_insert(HashTable *ht, pid_t key, const char *str);
-
-const StringArray *ht_get(const HashTable *ht, pid_t key);
-
-int ht_remove(HashTable *ht, pid_t key, const char *str);
-
+int ht_insert(HashTable *ht, const char *key, pid_t value);
+int ht_get(const HashTable *ht, const char *key, pid_t *value);
+int ht_remove(HashTable *ht, const char *key);
 void ht_destroy(HashTable *ht);
 
 #endif
