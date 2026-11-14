@@ -4,15 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-static unsigned int hash(const char *key)
+static unsigned long hash(const char *key)
 {
-    unsigned int hash = 5381;
+    unsigned long h = 5381;
     int c;
 
     while ((c = (unsigned char)*key++))
-        hash = ((hash << 5) + hash) + c;
+        h = h * 33 + c;
 
-    return hash % HASH_SIZE;
+    return h % HASH_SIZE;
 }
 
 HashTable *ht_create(void)
@@ -20,29 +20,43 @@ HashTable *ht_create(void)
     return calloc(1, sizeof(HashTable));
 }
 
-int ht_insert(HashTable *ht, const char *key, pid_t value)
+int ht_insert(HashTable *ht, const char *key, pid_t pid)
 {
     if (!ht || !key || strlen(key) >= MAX_KEY)
         return -1;
 
-    unsigned int index = hash(key);
+    unsigned long index = hash(key);
+    HashNode *node = ht->buckets[index];
 
-    for (HashNode *node = ht->buckets[index];
-         node != NULL;
-         node = node->next)
-    {
+    while (node) {
         if (strcmp(node->key, key) == 0) {
-            node->value = value;
+            pid_t *tmp = realloc(node->value,
+                                 (node->count + 1) * sizeof(pid_t));
+            if (!tmp)
+                return -1;
+
+            node->value = tmp;
+            node->value[node->count++] = pid;
             return 0;
         }
-    }
-    HashNode *node = malloc(sizeof(HashNode));
 
+        node = node->next;
+    }
+
+    node = calloc(1, sizeof(HashNode));
     if (!node)
         return -1;
 
     strcpy(node->key, key);
-    node->value = value;
+
+    node->value = malloc(sizeof(pid_t));
+    if (!node->value) {
+        free(node);
+        return -1;
+    }
+
+    node->value[0] = pid;
+    node->count = 1;
 
     node->next = ht->buckets[index];
     ht->buckets[index] = node;
@@ -50,21 +64,22 @@ int ht_insert(HashTable *ht, const char *key, pid_t value)
     return 0;
 }
 
-int ht_get(const HashTable *ht, const char *key, pid_t *value)
+int ht_get(HashTable *ht, const char *key, pid_t **pids, size_t *count)
 {
-    if (!ht || !key || !value)
+    if (!ht || !key || !pids || !count)
         return -1;
 
-    unsigned int index = hash(key);
+    unsigned long index = hash(key);
+    HashNode *node = ht->buckets[index];
 
-    for (HashNode *node = ht->buckets[index];
-         node != NULL;
-         node = node->next)
-    {
+    while (node) {
         if (strcmp(node->key, key) == 0) {
-            *value = node->value;
+            *pids = node->value;
+            *count = node->count;
             return 0;
         }
+
+        node = node->next;
     }
 
     return -1;
@@ -75,21 +90,20 @@ int ht_remove(HashTable *ht, const char *key)
     if (!ht || !key)
         return -1;
 
-    unsigned int index = hash(key);
+    unsigned long index = hash(key);
     HashNode **current = &ht->buckets[index];
 
     while (*current) {
-        if (strcmp((*current)->key, key) == 0) {
-            HashNode *tmp = *current;
+        HashNode *node = *current;
 
-            *current = tmp->next;
-
-            free(tmp);
-
+        if (strcmp(node->key, key) == 0) {
+            *current = node->next;
+            free(node->value);
+            free(node);
             return 0;
         }
 
-        current = &(*current)->next;
+        current = &node->next;
     }
 
     return -1;
@@ -100,12 +114,12 @@ void ht_destroy(HashTable *ht)
     if (!ht)
         return;
 
-    for (int i = 0; i < HASH_SIZE; i++) {
+    for (size_t i = 0; i < HASH_SIZE; i++) {
         HashNode *node = ht->buckets[i];
 
         while (node) {
             HashNode *next = node->next;
-
+            free(node->value);
             free(node);
             node = next;
         }
