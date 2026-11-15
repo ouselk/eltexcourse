@@ -13,13 +13,11 @@ int sendMessage(int msqid, long type, const Message *msg)
     if (msgsnd(msqid, &out, sizeof(Message) - sizeof(long), IPC_NOWAIT) == -1)
     {
         if (errno == EINVAL || errno == EIDRM)
-            return -2;      // очередь недоступна
-        return -1;          // например, очередь переполнена
-    }
+            return -2;
+        return -1;
     return 0;
 }
 
-// блокирующее чтение: прерывается сигналом (EINTR -> 0)
 int getMessage(int msqid, long type, Message *msg)
 {
     ssize_t result = msgrcv(msqid, msg, sizeof(Message) - sizeof(long), type, 0);
