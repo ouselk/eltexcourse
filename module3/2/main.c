@@ -13,7 +13,8 @@
 #include "hashmap.h"
 #include "pids_array.h"
 
-#define QUEUE_KEY 4444
+#define FTOK_PATHNAME "./a.out"
+#define FTOK_PROJ_ID 4444
 #define BROKER_WORK_TIME 120
 
 typedef struct
@@ -110,7 +111,8 @@ int broker(void)
         exit(EXIT_FAILURE);
     }
 
-    st->msqid = msgget(QUEUE_KEY, IPC_CREAT | IPC_EXCL | 0666);
+    key_t msqkey = ftok(FTOK_PATHNAME, FTOK_PROJ_ID);
+    st->msqid = msgget(msqkey, IPC_CREAT | IPC_EXCL | 0666);
     if (st->msqid < 0)
     {
         if (errno == EEXIST)
@@ -200,7 +202,8 @@ int genMessage(Message *msg, const char *topic)
 
 int publisher(const char *topic)
 {
-    int msqid = msgget(QUEUE_KEY, 0);
+    key_t msqkey = ftok(FTOK_PATHNAME, FTOK_PROJ_ID);
+    int msqid = msgget(msqkey, 0);
     if (msqid < 0)
     {
         perror("Не удалось открыть очередь");
@@ -239,7 +242,8 @@ void sub_exit(int status, void *arg)
 
 int subscriber(int topics_count, char* topics[])
 {
-    int msqid = msgget(QUEUE_KEY, 0);
+    key_t msqkey = ftok(FTOK_PATHNAME, FTOK_PROJ_ID);
+    int msqid = msgget(msqkey, 0);
     if (msqid < 0)
     {
         perror("Не удалось открыть очередь");
