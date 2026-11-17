@@ -15,6 +15,7 @@ int sendMessage(int msqid, long type, const Message *msg)
         if (errno == EINVAL || errno == EIDRM)
             return -2;
         return -1;
+    }
     return 0;
 }
 
