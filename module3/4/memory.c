@@ -28,17 +28,17 @@ int mem_create(Mem *m)
         return -1;
 
     // убрать остатки прошлого запуска
- //   int old = shmget(key, 0, 0666);
+ //   int old = shmget(key, 0, RW_FOR_ALL);
   //  if (old != -1)
   //      shmctl(old, IPC_RMID, NULL);
-  //  old = semget(key, 1, 0666);
+  //  old = semget(key, 1, RW_FOR_ALL);
   //  if (old != -1)
   //      semctl(old, 0, IPC_RMID);
 
-    m->shmid = shmget(key, SHM_SIZE, IPC_CREAT | IPC_EXCL | 0666);
+    m->shmid = shmget(key, SHM_SIZE, IPC_CREAT | IPC_EXCL | RW_FOR_ALL);
     if (m->shmid == -1)
         return -1;
-    m->semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666);
+    m->semid = semget(key, 1, IPC_CREAT | IPC_EXCL | RW_FOR_ALL);
     if (m->semid == -1)
         return -1;
 
@@ -65,8 +65,8 @@ int mem_open(Mem *m)
     if (key == -1)
         return -1;
 
-    m->shmid = shmget(key, 0, 0666);
-    m->semid = semget(key, 1, 0666);
+    m->shmid = shmget(key, 0, RW_FOR_ALL);
+    m->semid = semget(key, 1, RW_FOR_ALL);
     if (m->shmid == -1 || m->semid == -1)
         return -1;
 

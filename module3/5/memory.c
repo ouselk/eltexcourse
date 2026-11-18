@@ -9,7 +9,7 @@
 int mem_create(Mem *m)
 {
 
-    int fd = shm_open(SHM_NAME, O_CREAT | O_EXCL | O_RDWR, 0666);
+    int fd = shm_open(SHM_NAME, O_CREAT | O_EXCL | O_RDWR, RW_FOR_ALL);
     if (fd == -1)
         return -1;
     if (ftruncate(fd, SHM_SIZE) == -1)
@@ -22,7 +22,7 @@ int mem_create(Mem *m)
     if (m->shm == MAP_FAILED)
         return -1;
 
-    m->sem = sem_open(SEM_NAME, O_CREAT | O_EXCL, 0666, 1);
+    m->sem = sem_open(SEM_NAME, O_CREAT | O_EXCL, RW_FOR_ALL, 1);
     if (m->sem == SEM_FAILED) {
         munmap(m->shm, SHM_SIZE);
         return -1;
@@ -40,7 +40,7 @@ int mem_create(Mem *m)
 
 int mem_open(Mem *m)
 {
-    int fd = shm_open(SHM_NAME, O_RDWR, 0666);
+    int fd = shm_open(SHM_NAME, O_RDWR, RW_FOR_ALL);
     if (fd == -1)
         return -1;
     m->shm = mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);

@@ -10,6 +10,7 @@
 #define PRODUCER_SLEEP_US 100000
 #define CHECK_SLEEP_S     1
 #define CONSUMER_SLEEP_US 50000 
+#define RW_FOR_ALL 0666
 
 typedef struct {
     int first;
