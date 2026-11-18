@@ -147,7 +147,7 @@ int readarray(Mem *m, int *buf, int *n, int *done)
         if (b->count > 0) {
             *n = b->count;
             memcpy(buf, b + 1, b->count * sizeof(int));
-            b->count = 0;               /* пометили как обработанный */
+            b->count = 0;
             result = 1;
             break;
         }

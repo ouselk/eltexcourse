@@ -36,12 +36,12 @@ void check_and_wait(Mem *m)
 
         if (all_done)
             break;
-        printf("Producer: not all sets processed yet, sleeping...\n");
+        printf("Producer: не вссе обработано, спим\n");
         sleep(CHECK_SLEEP_S);
     }
 
     mem_destroy(m);
-    printf("Producer: all sets processed, memory detached, exiting.\n");
+    printf("Producer: все обработано. Завершаем.\n");
 }
 
 int main(void)
@@ -52,7 +52,7 @@ int main(void)
         return 1;
     }
 
-    srand((unsigned)time(NULL) ^ (unsigned)getpid());
+    srand((unsigned)time(NULL));
 
     int arr[MAX_N];
     int count = 0;
@@ -67,10 +67,10 @@ int main(void)
         if (r == 0)
             break;                      /* память исчерпана */
         count++;
-        printf("Producer: wrote set #%d (%d numbers)\n", count, n);
+        printf("Manufactor: записал #%d (%d numbers)\n", count, n);
         usleep(PRODUCER_SLEEP_US);
     }
-    printf("Producer: shared memory is full, %d sets written.\n", count);
+    printf("Manufactor: память заполнена, %d массивами\n", count);
 
     check_and_wait(&m);
     return 0;

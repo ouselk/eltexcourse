@@ -4,10 +4,9 @@
 #include <semaphore.h>
 
 #define SHM_SIZE          4096
-#define MAX_N             20
 #define SHM_NAME          "/task4_shm"
 #define SEM_NAME          "/task4_sem"
-
+#define MAX_N             20
 #define PRODUCER_SLEEP_US 100000
 #define CHECK_SLEEP_S     1
 #define CONSUMER_SLEEP_US 300000
