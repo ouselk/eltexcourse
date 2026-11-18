@@ -27,13 +27,13 @@ int mem_create(Mem *m)
     if (key == -1)
         return -1;
 
-    /* убрать остатки прошлого запуска */
-    int old = shmget(key, 0, 0666);
-    if (old != -1)
-        shmctl(old, IPC_RMID, NULL);
-    old = semget(key, 1, 0666);
-    if (old != -1)
-        semctl(old, 0, IPC_RMID);
+    // убрать остатки прошлого запуска
+ //   int old = shmget(key, 0, 0666);
+  //  if (old != -1)
+  //      shmctl(old, IPC_RMID, NULL);
+  //  old = semget(key, 1, 0666);
+  //  if (old != -1)
+  //      semctl(old, 0, IPC_RMID);
 
     m->shmid = shmget(key, SHM_SIZE, IPC_CREAT | IPC_EXCL | 0666);
     if (m->shmid == -1)
@@ -46,7 +46,6 @@ int mem_create(Mem *m)
     if (m->shm == (void *)-1)
         return -1;
 
-    /* пока заголовок не готов, семафор закрыт (0 = disable) */
     union semun arg = { .val = 0 };
     if (semctl(m->semid, 0, SETVAL, arg) == -1)
         return -1;
@@ -102,21 +101,21 @@ int unblockmem(Mem *m)
 int writearray(Mem *m, const int *arr, int n)
 {
     ShmHeader *h = (ShmHeader *)m->shm;
-    int need = (int)sizeof(BlockHeader) + n * (int)sizeof(int);
-    int result;
+    int need = sizeof(BlockHeader) + n * sizeof(int);
+    int result=0;
 
     if (blockmem(m) == -1)
         return -1;
 
     if (h->free_off + need > SHM_SIZE) {
-        h->done = 1;                    /* память исчерпана */
+        h->done = 1;
         result = 0;
     } else {
         int off = h->free_off;
         BlockHeader *b = (BlockHeader *)((char *)m->shm + off);
 
         b->count = n;
-        b->next = 0;                    /* пока последний */
+        b->next = 0;
         memcpy(b + 1, arr, n * sizeof(int));
 
         if (h->first == 0)

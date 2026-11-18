@@ -1,68 +1,45 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-/* Реализация: System V (shmget/shmat + semget/semop). */
 
-#define SHM_SIZE          4096      /* размер разделяемой памяти, байт */
-#define MAX_N             20        /* максимум элементов в одном наборе */
-#define KEY_PATH          "."       /* для ftok */
+#define SHM_SIZE          4096 
+#define MAX_N             20 
+#define KEY_PATH          "."
 #define KEY_ID            1707
 
-#define PRODUCER_SLEEP_US 100000    /* пауза производителя между наборами */
-#define CHECK_SLEEP_S     1         /* пауза производителя между проверками */
-#define CONSUMER_SLEEP_US 300000    /* пауза потребителя после набора */
+#define PRODUCER_SLEEP_US 100000
+#define CHECK_SLEEP_S     1
+#define CONSUMER_SLEEP_US 50000 
 
-/*
- * Раскладка разделяемой памяти:
- *   [ShmHeader][BlockHeader][int...][BlockHeader][int...]...
- *
- * "Адрес" следующего блока - смещение в байтах от начала сегмента
- * (у каждого процесса shmat может вернуть свой адрес, указатели не годятся).
- * Смещение 0 занято ShmHeader, поэтому next == 0 означает "последний блок".
- */
 typedef struct {
-    int first;      /* смещение первого блока, 0 - блоков нет */
-    int last;       /* смещение последнего блока */
-    int free_off;   /* смещение начала свободного места */
-    int done;       /* 1 - производитель закончил генерацию */
+    int first;
+    int last;
+    int free_off;
+    int done;
 } ShmHeader;
 
 typedef struct {
-    int count;      /* число элементов, 0 - набор обработан */
-    int next;       /* смещение следующего блока, 0 - последний */
-    /* далее идут count элементов типа int */
+    int count;
+    int next;
+
 } BlockHeader;
 
-/* Дескриптор. Поле shm общее для всех реализаций, остальное - внутреннее. */
 typedef struct {
     void *shm;
     int   shmid;
     int   semid;
 } Mem;
 
-/* Создать память и семафор (производитель). 0 - успех, -1 - ошибка. */
 int mem_create(Mem *m);
-/* Открыть уже созданные память и семафор (потребитель). */
 int mem_open(Mem *m);
-/* Отключиться от памяти. */
 void mem_detach(Mem *m);
-/* Отключиться и удалить объекты из системы (производитель). */
 void mem_destroy(Mem *m);
 
-/* Семафор: 1 - память свободна (enable), 0 - заблокирована (disable). */
 int blockmem(Mem *m);
 int unblockmem(Mem *m);
 
-/* Записать массив в конец списка.
- * 1 - записано, 0 - не хватило места (память исчерпана, done = 1),
- * -1 - ошибка семафора. */
 int writearray(Mem *m, const int *arr, int n);
 
-/* Найти первый необработанный набор, скопировать его в buf и пометить
- * обработанным (count = 0) - под одной блокировкой, чтобы два потребителя
- * не взяли один набор.
- * 1 - набор прочитан (*n элементов), 0 - необработанных нет,
- * -1 - ошибка семафора. *done - флаг "производитель закончил". */
 int readarray(Mem *m, int *buf, int *n, int *done);
 
 #endif
