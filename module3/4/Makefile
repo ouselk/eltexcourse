@@ -1,3 +1,5 @@
+all: manufactor consumer
+
 manufactor:
 	gcc -Wall -Wextra  manufactor.c memory.c -o manufactor
 
