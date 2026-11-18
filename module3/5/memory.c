@@ -8,14 +8,12 @@
 
 int mem_create(Mem *m)
 {
-    /* убрать остатки прошлого запуска */
-    shm_unlink(SHM_NAME);
-    sem_unlink(SEM_NAME);
 
     int fd = shm_open(SHM_NAME, O_CREAT | O_EXCL | O_RDWR, 0666);
     if (fd == -1)
         return -1;
-    if (ftruncate(fd, SHM_SIZE) == -1) {    /* новая память заполнена нулями */
+    if (ftruncate(fd, SHM_SIZE) == -1)
+    {
         close(fd);
         return -1;
     }
@@ -24,14 +22,12 @@ int mem_create(Mem *m)
     if (m->shm == MAP_FAILED)
         return -1;
 
-    /* начальное значение 1 = память доступна */
     m->sem = sem_open(SEM_NAME, O_CREAT | O_EXCL, 0666, 1);
     if (m->sem == SEM_FAILED) {
         munmap(m->shm, SHM_SIZE);
         return -1;
     }
 
-    /* инициализация заголовка под блокировкой */
     if (blockmem(m) == -1)
         return -1;
     ShmHeader *h = (ShmHeader *)m->shm;
@@ -97,14 +93,14 @@ int writearray(Mem *m, const int *arr, int n)
         return -1;
 
     if (h->free_off + need > SHM_SIZE) {
-        h->done = 1;                    /* память исчерпана */
+        h->done = 1;
         result = 0;
     } else {
         int off = h->free_off;
         BlockHeader *b = (BlockHeader *)((char *)m->shm + off);
 
         b->count = n;
-        b->next = 0;                    /* пока последний */
+        b->next = 0;
         memcpy(b + 1, arr, n * sizeof(int));
 
         if (h->first == 0)
@@ -136,7 +132,7 @@ int readarray(Mem *m, int *buf, int *n, int *done)
         if (b->count > 0) {
             *n = b->count;
             memcpy(buf, b + 1, b->count * sizeof(int));
-            b->count = 0;               /* пометили как обработанный */
+            b->count = 0;
             result = 1;
             break;
         }
