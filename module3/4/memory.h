@@ -6,7 +6,7 @@
 #define SHM_SIZE          4096      /* размер разделяемой памяти, байт */
 #define MAX_N             20        /* максимум элементов в одном наборе */
 #define KEY_PATH          "."       /* для ftok */
-#define KEY_ID            'M'
+#define KEY_ID            1707
 
 #define PRODUCER_SLEEP_US 100000    /* пауза производителя между наборами */
 #define CHECK_SLEEP_S     1         /* пауза производителя между проверками */

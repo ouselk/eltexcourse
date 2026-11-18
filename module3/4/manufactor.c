@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include "memory.h"
 
-/* Генерирует массив случайной длины (1..MAX_N) из случайных чисел.
- * Массив кладётся в arr (размер не меньше MAX_N), возвращается число элементов. */
 int genArray(int *arr)
 {
     int n = rand() % MAX_N + 1;
@@ -14,13 +12,12 @@ int genArray(int *arr)
     return n;
 }
 
-/* Ждёт, пока все наборы будут обработаны, затем отключает и удаляет
- * разделяемую память и семафор. */
 void check_and_wait(Mem *m)
 {
     ShmHeader *h = (ShmHeader *)m->shm;
 
-    for (;;) {
+    while (1)
+    {
         int all_done = 1;
 
         if (blockmem(m) == -1) {
@@ -59,7 +56,8 @@ int main(void)
 
     int arr[MAX_N];
     int count = 0;
-    for (;;) {
+    while (1)
+    {
         int n = genArray(arr);
         int r = writearray(&m, arr, n);
         if (r == -1) {
