@@ -6,6 +6,9 @@
 #define EXIT_PRIORITY    14
 #define NORMAL_PRIORITY  0
 #define MAX_MESSAGE_LEN  512   /* максимальный размер сообщения вместе с '\0' */
+#define QNAME_BUF   256
+#define QUEUE_MODE  0666
+#define MAX_MSGS    10
 
 typedef enum { FIRST_MEMBER, SECOND_MEMBER } chat_member;
 

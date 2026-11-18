@@ -66,7 +66,8 @@ static void on_newmsg(int sig)
     sev.sigev_signo  = SIG_NEWMSG;
     if (mq_notify(ctx.rq, &sev) == -1) {
         say_err("\nОшибка mq_notify\n");
-        finish();
+        exit(EXIT_FAILURE);
+        //finish();
     }
 
     while (1)

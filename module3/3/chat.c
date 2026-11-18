@@ -7,9 +7,7 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#define QNAME_BUF   256
-#define QUEUE_MODE  0666
-#define MAX_MSGS    10
+
 
 static void sleep_ms(int ms)
 {
